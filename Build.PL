@@ -24,10 +24,10 @@ my %module_build_args = (
   'recommends' => {},
   'recursive_test_files' => 1,
   'requires' => {
-    'Exporter' => '0',
     'File::Find::Rule' => '0',
+    'File::Spec' => '0',
     'File::Temp' => '0',
-    'HTML::SimpleParse' => '0'
+    'Module::Pluggable' => '0'
   },
   'script_files' => []
 );

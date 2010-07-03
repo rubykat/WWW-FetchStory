@@ -6,6 +6,7 @@ META.yml
 README
 dist.ini
 lib/WWW/FetchStory.pm
+lib/WWW/FetchStory/Fetcher.pm
 t/01_load.t
 t/release-pod-coverage.t
 t/release-pod-syntax.t

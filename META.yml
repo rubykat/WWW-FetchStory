@@ -15,8 +15,8 @@ meta-spec:
   version: 1.4
 name: WWW-FetchStory
 requires:
-  Exporter: 0
   File::Find::Rule: 0
+  File::Spec: 0
   File::Temp: 0
-  HTML::SimpleParse: 0
+  Module::Pluggable: 0
 version: 0.01

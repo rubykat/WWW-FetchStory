@@ -14,9 +14,11 @@ version 0.01
 
 =head1 SYNOPSIS
 
-    use WWW::FetchStory qw(:all);
+    use WWW::FetchStory;
 
-    my %story_info = fetch_story(
+    my $obj = WWW::FetchStory->new(%args);
+
+    my %story_info = $obj->fetch_story(
 	url=>$url,
 	basename=>$basename);
 
@@ -30,37 +32,32 @@ so that all you get is the story text and its formatting.
 
 =cut
 
-use HTML::SimpleParse;
 use File::Temp qw(tempdir);
 use File::Find::Rule;
+use WWW::FetchStory::Fetcher;
+use Module::Pluggable instantiate => 'new', search_path => 'WWW::FetchStory::Fetcher', sub_name => 'fetchers';
 
-require Exporter;
+=head1 METHODS
 
-our @ISA = qw(Exporter);
+=head2 new
 
-# Items to export into callers namespace by default. Note: do not export
-# names by default without a very good reason. Use EXPORT_OK instead.
-# Do not simply export all your public functions/methods/constants.
+Create a new object, setting global values for the object.
 
-# This allows declaration
-# use Text::ParseStory ':all';
-# If you do not need this, moving things directly into @EXPORT or @EXPORT_OK
-# will save memory.
-our %EXPORT_TAGS = (
-    'all' => [
-        qw(
-        get_story_info
-        )
-    ]
-);
+    my $obj = WWW::FetchStory->new(
+	config_dir=>"$ENV{HOME}/.fetch_story",
+	);
 
-our @EXPORT_OK = (@{$EXPORT_TAGS{'all'}});
+=cut
 
-our @EXPORT = qw(
-
-);
-
-=head1 FUNCTIONS
+sub new {
+    my $class = shift;
+    my %parameters = (
+	config_dir => "$ENV{HOME}/.fetch_story",
+	@_
+    );
+    my $self = bless ({%parameters}, ref ($class) || $class);
+    return ($self);
+} # new
 
 =head2 fetch_story
 
@@ -71,48 +68,36 @@ our @EXPORT = qw(
 =cut
 sub fetch_story (%) {
     my %args = (
-	file=>'',
-	columns=>undef,
 	url=>'',
 	verbose=>0,
 	@_
     );
 
-    my %story_info = ();
-    foreach my $col (@{$args{columns}})
-    {
-	$story_info{$col} = '';
-    }
-    if ($args{file} =~ /.txt$/)
-    {
-	extract_info_from_text(vals=>\%story_info, %args);
-    }
-    elsif ($args{file} =~ /.zip$/)
-    {
-	extract_info_from_zip(vals=>\%story_info, %args);
-    }
-    else
-    {
-	extract_info_from_html(vals=>\%story_info, %args);
-    }
-    return %story_info;
 } # fetch_story
 
 =head1 Private Functions
 
-=head2 fetch_from_ffn
+=head2 get_fetchers
 
-Fetch a story from fanfiction.net.
+    my @fetchers = $obj->get_fetchers();
+
+Return which fetchers are available.
 
 =cut
-sub fetch_from_ffn (%) {
-    my %args = (
-		url=>'',
-		basename=>undef,
-		@_
-	       );
+sub get_fetchers($) {
+    my $self = shift;
 
-} # fetch_from_ffn
+    my @avail_fetchers = ();
+    my @fetchers = $self->fetchers();
+    foreach my $be (@fetchers)
+    {
+	if ($be->active())
+	{
+	    push @avail_fetchers, WWW::FetchStory::Fetcher::name($be);
+	}
+    }
+    return @avail_fetchers;
+} # get_fetchers
 
 =head1 BUGS
 
