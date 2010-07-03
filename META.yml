@@ -1,0 +1,22 @@
+---
+abstract: 'Fetch a story from a fiction website'
+author:
+  - 'Kathryn Andersen <perlkat@katspace.org>'
+build_requires:
+  Module::Build: 0.3601
+  Test::More: 0
+configure_requires:
+  Module::Build: 0.3601
+dynamic_config: 0
+generated_by: 'Dist::Zilla version 4.101831, CPAN::Meta::Converter version 2.101670'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: WWW-FetchStory
+requires:
+  Exporter: 0
+  File::Find::Rule: 0
+  File::Temp: 0
+  HTML::SimpleParse: 0
+version: 0.01

@@ -1,0 +1,11 @@
+Build.PL
+Changes
+LICENSE
+MANIFEST
+META.yml
+README
+dist.ini
+lib/WWW/FetchStory.pm
+t/01_load.t
+t/release-pod-coverage.t
+t/release-pod-syntax.t

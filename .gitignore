@@ -1,8 +1,0 @@
-Build
-META.yml
-Makefile.PL
-_build/
-blib
-
-releases
-WWW-FetchStory*
