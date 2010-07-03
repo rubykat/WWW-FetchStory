@@ -1,7 +1,7 @@
 use Test::More tests => 1;
 
 BEGIN {
-use_ok( 'Text::ParseStory' );
+use_ok( 'WWW::FetchStory' );
 }
 
-diag( "Testing Text::ParseStory ${Text::ParseStory::VERSION}" );
+diag( "Testing WWW::FetchStory ${WWW::FetchStory::VERSION}" );
