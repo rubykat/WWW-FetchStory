@@ -2,18 +2,10 @@
 9999-99-99 99:99:99 +0000 HEAD
 ==============================
 
-  commit d51b98050db924efcd7cc2026e1edda70ae982c3
-  Author: Kathryn Andersen <perlkat@katspace.org>
-  Date:   Sat Jul 3 22:49:05 2010 +1000
-  
-    More Dist::Zilla tweaking; also corrected test.
-
-  commit 9f0b1683eed57cb709bcf0b2be9fdf37d2b0bc65
-  Author: Kathryn Andersen <perlkat@katspace.org>
-  Date:   Sat Jul 3 22:23:30 2010 +1000
-  
-    Tweaking for Dist::Zilla; still barebones. 
-
+  " * 2010-07-03 22:49:05 +1000
+     More Dist::Zilla tweaking; also corrected test."
+  " * 2010-07-03 22:23:30 +1000
+     Tweaking for Dist::Zilla; still barebones."
 ===================================
 End of changes in the last 365 days
 ===================================
