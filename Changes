@@ -1,5 +1,9 @@
+
+===================================
+Revision History for WWW-FetchStory
+===================================
 HEAD 9999-99-99
-===============
+---------------
 
 * 2010-07-03 22:49:05 +1000
   More Dist::Zilla tweaking; also corrected test.
