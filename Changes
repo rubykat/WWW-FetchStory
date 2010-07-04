@@ -2,10 +2,10 @@
 9999-99-99 99:99:99 +0000 HEAD
 ==============================
 
-  " * 2010-07-03 22:49:05 +1000
-     More Dist::Zilla tweaking; also corrected test."
-  " * 2010-07-03 22:23:30 +1000
-     Tweaking for Dist::Zilla; still barebones."
+  * 2010-07-03 22:49:05 +1000
+     More Dist::Zilla tweaking; also corrected test.
+  * 2010-07-03 22:23:30 +1000
+     Tweaking for Dist::Zilla; still barebones.
 ===================================
 End of changes in the last 365 days
 ===================================
