@@ -5,27 +5,21 @@ use warnings;
 
 WWW::FetchStory::Fetcher - fetching module for WWW::FetchStory
 
-=head1 SYNOPSIS
-
-    fetch_story --use I<fetcher>
-
 =head1 DESCRIPTION
 
 This is the base class for story-fetching plugins for WWW::FetchStory.
 
 =cut
 
-use LWP::UserAgent;
-use HTTP::Cookies::Netscape;
 require File::Temp;
 use Encode::ZapCP1252;
-use HTML::Tidy::libXML;
+use YAML::Any;
 
 =head1 METHODS
 
 =head2 new
 
-$obj->WWW::FetchStory::Fetcher->new(user_agent=>$user_agent);
+$obj->WWW::FetchStory::Fetcher->new();
 
 =cut
 
@@ -33,6 +27,12 @@ sub new {
     my $class = shift;
     my %parameters = @_;
     my $self = bless ({%parameters}, ref ($class) || $class);
+
+    $self->{wget} = 'wget';
+    if (-f "$ENV{HOME}/cookies.txt")
+    {
+	$self->{wget} .= " --load-cookies $ENV{HOME}/cookies.txt";
+    }
 
     return ($self);
 } # new
@@ -77,12 +77,6 @@ $priority = WWW::FetchStory::Fetcher::priority($class);
 
 sub priority {
     my $class = shift;
-
-    my $name = $class->name();
-    if ($name =~ /(\d+)/)
-    {
-	return $1;
-    }
     return 0;
 } # priority
 
@@ -121,20 +115,29 @@ sub fetch {
 	@_
     );
 
-    my $toc_content = $self->get_page($args{url});
-    my %story_info = $self->parse_toc($toc_content);
+    $self->{verbose} = $args{verbose};
+
+    my $toc_content = $self->get_toc($args{url});
+    my %story_info = $self->parse_toc(content=>$toc_content,
+				      url=>$args{url});
+
+    warn Dump(\%story_info) if $self->{verbose};
 
     my @ch_urls = @{$story_info{chapters}};
+    my $one_chapter = (@ch_urls == 1);
+    my $first_chapter_is_toc = $story_info{toc_first};
     my $basename = $self->get_story_basename($story_info{title});
     my @storyfiles = ();
+    my $count = (($one_chapter or $first_chapter_is_toc) ? 0 : 1);
     foreach (my $i = 0; $i < @ch_urls; $i++)
     {
 	my $ch_title = sprintf("%s (%d)", $story_info{title}, $i+1);
 	my $fn = $self->get_chapter(base=>$basename,
-				    count=>($i+1),
+				    count=>$count,
 				    url=>$ch_urls[$i],
 				    title=>$ch_title);
 	push @storyfiles, $fn;
+	$count++;
     }
 
     $story_info{storyfiles} = \@storyfiles;
@@ -162,7 +165,8 @@ sub get_story_basename {
     $base =~ s/^The\s+//; # get rid of leading "The "
     $base =~ s/^A\s+//; # get rid of leading "A "
     $base =~ s/^An\s+//; # get rid of leading "An "
-    $base =~ s/[^-\w\s]//g;
+    $base =~ s/-/ /g; # replace dashes with spaces
+    $base =~ s/[^\w\s]//g;
     $base = lc($base);
     my @words = split(' ', $base);
     my @first_words = ();
@@ -170,7 +174,7 @@ sub get_story_basename {
     for (my $i = 0; $i < @words and @first_words < $max_words; $i++)
     {
 	# also skip little words
-	if ($words[$i] !~ /^(the|a|an|of|and)$/)
+	if ($words[$i] !~ /^(the|a|an|of|and|to)$/)
 	{
 	    push @first_words, $words[$i];
 	}
@@ -215,7 +219,7 @@ sub tidy {
 
     if ($story)
     {
-	$story = self->tidy_chars($story);
+	$story = $self->tidy_chars($story);
     }
     else
     {
@@ -234,6 +238,18 @@ sub tidy {
     return $out;
 } # tidy
 
+=head2 get_toc
+
+Get a table-of-contents page.
+
+=cut
+sub get_toc {
+    my $self = shift;
+    my $url = shift;
+
+    return $self->get_page($url);
+} # get_toc
+
 =head2 get_page
 
 Get the contents of a URL.
@@ -244,21 +260,16 @@ sub get_page {
     my $self = shift;
     my $url = shift;
 
+    warn "getting $url\n" if $self->{verbose};
     my $content = '';
-    my $req = HTTP::Request->new(GET => $url);
-    $req->header('Accept' => 'text/html');
-
-    # send request
-    my $res = $self->{user_agent}->request($req);
-
-    # check the outcome
-    if ($res->is_success) {
-	my $tidy = HTML::Tidy::libXML->new();
-	$content = $tidy->clean($res->content, $res->encoding, 1);
+    my $cmd = sprintf("%s -O %s '%s'", $self->{wget}, '-', $url);
+    my $ifh;
+    open($ifh, "${cmd}|") or die "FAILED $cmd: $!";
+    while(<$ifh>)
+    {
+	$content .= $_;
     }
-    else {
-	die "Error: " . $res->status_line . "\n";
-    }
+    close($ifh);
 
     return $content;
 } # get_page
@@ -269,7 +280,8 @@ Parse the table-of-contents file.
 
 This must be overridden by the specific fetcher class.
 
-    %info = $self->parse_toc($content);
+    %info = $self->parse_toc(content=>$content,
+			 url=>$url);
 
 This should return a hash containing:
 
@@ -293,13 +305,170 @@ It may also return additional information, such as Summary.
 sub parse_toc {
     my $self = shift;
     my %args = (
+	url=>'',
+	content=>'',
 	@_
     );
 
     my %info = ();
+    my @chapters = ($args{url});
+    $info{url} = $args{url};
+    $info{title} = $self->parse_title(%args);
+    $info{author} = $self->parse_author(%args);
+    $info{summary} = $self->parse_summary(%args);
+    $info{characters} = $self->parse_characters(%args);
+    $info{chapters} = \@chapters;
 
     return %info;
 } # parse_toc
+
+=head2 parse_title
+
+Get the title from the content
+
+=cut
+sub parse_title {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+
+    my $content = $args{content};
+    my $title = '';
+    if ($content =~ /<(?:b|strong)>Title:\s*<\/(?:b|strong)>\s*"?(.*?)"?\s*<(?:br|p|\/p|div|\/div)/si)
+    {
+	$title = $1;
+    }
+    elsif ($content =~ /\bTitle:\s*"?(.*?)"?\s*<br/s)
+    {
+	$title = $1;
+    }
+    elsif ($content =~ m#<h1>([^<]+)</h1>#is)
+    {
+	$title = $1;
+    }
+    elsif ($content =~ m#<h2>([^<]+)</h2>#is)
+    {
+	$title = $1;
+    }
+    elsif ($content =~ m#<title>([^<]+)</title>#is)
+    {
+	$title = $1;
+    }
+    return $title;
+} # parse_title
+
+=head2 parse_author
+
+Get the author from the content
+
+=cut
+sub parse_author {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+
+    my $content = $args{content};
+    my $author = '';
+    if ($content =~ /<(?:b|strong)>Author:\s*<\/(?:b|strong)>\s*"?(.*?)"?\s*<(?:br|p|\/p|div|\/div)/si)
+    {
+	$author = $1;
+    }
+    elsif ($content =~ /\bAuthor:\s*"?(.*?)"?\s*<br/si)
+    {
+	$author = $1;
+    }
+    elsif ($content =~ /<meta name="author" content="(.*?)"/si)
+    {
+	$author = $1;
+    }
+    elsif ($content =~ /<p>by (.*?)<br/si)
+    {
+	$author = $1;
+    }
+    return $author;
+} # parse_author
+
+=head2 parse_summary
+
+Get the summary from the content
+
+=cut
+sub parse_summary {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+
+    my $content = $args{content};
+    my $summary = '';
+    if ($content =~ /<(?:b|strong)>Summary:\s*<\/(?:b|strong)>\s*"?(.*?)"?\s*<(?:br|p|\/p|div|\/div)/si)
+    {
+	$summary = $1;
+    }
+    elsif ($content =~ /\bSummary:\s*"?(.*?)"?\s*<(?:br|p|\/p|div|\/div)/si)
+    {
+	$summary = $1;
+    }
+    elsif ($content =~ m#(?:Prompt|Summary):</b>([^<]+)#is)
+    {
+	$summary = $1;
+    }
+    elsif ($content =~ m#(?:Prompt|Summary):</strong>([^<]+)#is)
+    {
+	$summary = $1;
+    }
+    elsif ($content =~ m#(?:Prompt|Summary):</u>([^<]+)#is)
+    {
+	$summary = $1;
+    }
+    return $summary;
+} # parse_summary
+
+=head2 parse_characters
+
+Get the characters from the content
+
+=cut
+sub parse_characters {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+
+    my $content = $args{content};
+    my $characters = '';
+    if ($content =~ /<(?:b|strong)>Characters:\s*<\/(?:b|strong)>\s*"?(.*?)"?\s*<(?:br|p|\/p|div|\/div)/si)
+    {
+	$characters = $1;
+    }
+    elsif ($content =~ /\bCharacters:\s*"?(.*?)"?\s*<br/si)
+    {
+	$characters = $1;
+    }
+    elsif ($content =~ m#(?:Pairings|Characters):</b>([^<]+)#is)
+    {
+	$characters = $1;
+    }
+    elsif ($content =~ m#(?:Pairings|Characters):</strong>([^<]+)#is)
+    {
+	$characters = $1;
+    }
+    elsif ($content =~ m#(?:Pairings|Characters):</u>([^<]+)#is)
+    {
+	$characters = $1;
+    }
+    return $characters;
+} # parse_characters
 
 =head2 get_chapter
 
@@ -325,9 +494,12 @@ sub get_chapter {
 
     my $content = $self->get_page($args{url});
 
-    $content = $self->tidy($content);
+    $content = $self->tidy(content=>$content,
+			   title=>$args{title});
 
-    my $filename = sprintf("%s%02d.html", $args{base}, $args{count});
+    my $filename = ($args{count}
+	? sprintf("%s%02d.html", $args{base}, $args{count})
+	: sprintf("%s.html", $args{base}));
     my $ofh;
     open($ofh, ">",  $filename) || die "Can't write to $filename";
     print $ofh $content;

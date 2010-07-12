@@ -23,12 +23,10 @@ so that all you get is the story text and its formatting.
 
 =cut
 
-require File::Temp;
-use LWP::UserAgent;
-use HTTP::Cookies::Netscape;
-
 use WWW::FetchStory::Fetcher;
-use Module::Pluggable instantiate => 'new', search_path => 'WWW::FetchStory::Fetcher', sub_name => 'fetchers';
+use Module::Pluggable instantiate => 'new',
+search_path => ['WWW::FetchStory::Fetcher'],
+sub_name => 'fetchers';
 
 =head1 METHODS
 
@@ -36,47 +34,28 @@ use Module::Pluggable instantiate => 'new', search_path => 'WWW::FetchStory::Fet
 
 Create a new object, setting global values for the object.
 
-    my $obj = WWW::FetchStory->new(
-	config_dir=>"$ENV{HOME}/.fetch_story",
-	);
+    my $obj = WWW::FetchStory->new();
 
 =cut
 
 sub new {
     my $class = shift;
-    my %parameters = (
-	config_dir => "$ENV{HOME}/.fetch_story",
-	@_
-    );
+    my %parameters = (@_);
     my $self = bless ({%parameters}, ref ($class) || $class);
-
-    # ---------------------------------------
-    # User Agent
-    # We only need one user-agent, so share it amongst all the fetchers
-
-    $self->{user_agent} = LWP::UserAgent->new;
-    $self->{user_agent}->env_proxy; # proxy from environment variables
-
-    # be prepared for cookies
-    my $cookie_fh = File::Temp->new(TEMPLATE => 'fcookXXXXX');
-    my $cookie_file = $cookie_fh->filename;
-    my $cookie_jar = HTTP::Cookies::Netscape->new(file => $cookie_file,
-						  autosave => 0);
-    if (-f "$ENV{HOME}/cookies.txt")
-    {
-	$cookie_jar->load("$ENV{HOME}/cookies.txt");
-    }
-    $self->{user_agent}->cookie_jar($cookie_jar);
 
     # ---------------------------------------
     # Fetchers
     # find out what fetchers are available, and group them by priority
-
     $self->{fetch_pri} = {};
-    my @fetchers = $self->fetchers(user_agent=>$self->{user_agent});
+    my @fetchers = $self->fetchers();
     foreach my $fe (@fetchers)
     {
-	my $priority = WWW::FetchStory::Fetcher::priority($fe);
+	my $priority = $fe->priority();
+	my $name = $fe->name();
+	if ($self->{debug})
+	{
+	    print STDERR "fetcher=$name($priority)\n";
+	}
 	if (!exists $self->{fetch_pri}->{$priority})
 	{
 	    $self->{fetch_pri}->{$priority} = [];
@@ -90,8 +69,8 @@ sub new {
 =head2 fetch_story
 
     my %story_info = fetch_story(
-	url=>$url,
-	basename=>$basename);
+				 url=>$url,
+				 verbose=>1);
 
 =cut
 sub fetch_story ($%) {
@@ -110,12 +89,18 @@ sub fetch_story ($%) {
 	    if ($fe->allow($args{url}))
 	    {
 		$fetcher = $fe;
+		warn "Fetcher($pri): ", $fe->name(), "\n" if $args{verbose};
+		last;
 	    }
+	}
+	if (defined $fetcher)
+	{
+	    last;
 	}
     }
     if (defined $fetcher)
     {
-	return $fetcher->fetch(url=>$args{url});
+	return $fetcher->fetch(%args);
     }
 
 } # fetch_story

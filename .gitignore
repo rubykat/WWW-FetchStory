@@ -3,6 +3,7 @@ META.yml
 Makefile.PL
 _build/
 blib
+.build/
 
 releases
 WWW-FetchStory*
