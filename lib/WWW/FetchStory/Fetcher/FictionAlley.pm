@@ -15,6 +15,22 @@ our @ISA = qw(WWW::FetchStory::Fetcher);
 
 =head1 METHODS
 
+=head2 new
+
+$obj->WWW::FetchStory::Fetcher->new();
+
+=cut
+
+sub new {
+    my $class = shift;
+    my $self = $class->SUPER::new(@_);
+    # disable the User-Agent for FictionAlley
+    # because it blocks wget
+    $self->{wget} .= " --user-agent=''";
+
+    return ($self);
+} # new
+
 =head2 priority
 
 The priority of this fetcher.  Fetchers with higher priority
@@ -155,7 +171,45 @@ sub parse_toc {
 	@_
     );
 
-    my %info = $self->SUPER::parse_toc(%args);
+    my %info = ();
+    my $content = $args{content};
+
+    my @chapters = ();
+    $info{url} = $args{url};
+    if ($content =~ m/<h1\s*class\s*=\s*"title"[^>]*>([^<]+)\s*by\s*<a/s)
+    {
+	$info{title} = $1;
+	$info{title} =~ s/&#039;/'/g;
+    }
+    else
+    {
+	$info{title} = $self->parse_title(%args);
+    }
+    if ($content =~ m/<h1\s*class\s*=\s*"title"[^>]*>[^<]+\s*by\s*<a href="[^"]+">([^<]+)<\/a>/s)
+    {
+	$info{author} = $1;
+    }
+    else
+    {
+	$info{author} = $self->parse_author(%args);
+    }
+    if ($content =~ /<div class="summary"[^>]*>[\w\s]*<br \/>\s*<i>\s*(.*?)<\/i>\s*<\/div>/s)
+    {
+	$info{summary} = $1;
+    }
+    else
+    {
+	$info{summary} = $self->parse_summary(%args);
+    }
+    $info{characters} = '';
+    while ($content =~ m#<a href\s*=\s*"(http://www.fictionalley.org/authors/\w+/\w+\.html)"\s*class\s*=\s*"chapterlink">#g)
+    {
+	my $ch_url = $1;
+	warn "chapter=$ch_url\n" if $self->{verbose};
+	push @chapters, $ch_url;
+    }
+
+    $info{chapters} = \@chapters;
     warn "WARNING: this interface is incomplete.";
 
     return %info;

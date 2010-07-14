@@ -263,6 +263,7 @@ sub get_page {
     warn "getting $url\n" if $self->{verbose};
     my $content = '';
     my $cmd = sprintf("%s -O %s '%s'", $self->{wget}, '-', $url);
+    warn "$cmd\n" if $self->{verbose};
     my $ifh;
     open($ifh, "${cmd}|") or die "FAILED $cmd: $!";
     while(<$ifh>)
@@ -521,6 +522,7 @@ sub tidy_chars {
 
     # numeric entities
     $string =~ s/&#13;//sg;
+    $string =~ s/&#39;/'/sg;
     $string =~ s/&#34;/"/sg;
     $string =~ s/&#45;/-/sg;
     $string =~ s/&#160;/ /sg;
