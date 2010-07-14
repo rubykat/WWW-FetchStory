@@ -115,6 +115,7 @@ sub parse_toc {
     $info{author} = $author;
 
     $info{characters} = "Hermione Granger, Severus Snape";
+    $info{universe} = 'Harry Potter';
 
     while ($content =~ m/href="(http:\/\/sshg-mod\.livejournal\.com\/\d+.html)(#cutid\d)?">/sg)
     {

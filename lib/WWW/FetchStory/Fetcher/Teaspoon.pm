@@ -204,6 +204,7 @@ sub parse_toc {
 	$doctor = $1;
     }
     $info{characters} = join(", ", ($doctor, $self->parse_characters(%args,content=>$chapter1)));
+    $info{universe} = 'Doctor Who';
 
     # fortunately Teaspoon has a sane chapter system
     if ($content =~ m#chapter=all#s)

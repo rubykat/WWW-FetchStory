@@ -102,6 +102,7 @@ sub parse_toc {
     $info{author} = $self->parse_author(%args);
     $info{summary} = $self->parse_summary(%args);
     $info{characters} = $self->parse_characters(%args);
+    $info{universe} = 'Buffy';
 
     if ($content =~ m{<td>(No|Yes)\s*</td>\s*</tr>}s)
     {

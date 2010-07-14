@@ -142,6 +142,7 @@ sub parse_toc {
 	}
     }
     $info{characters} = 'Hermione Granger, Severus Snape';
+    $info{universe} = 'Harry Potter';
 
 
     # Ashwinder does not have a sane chapter system

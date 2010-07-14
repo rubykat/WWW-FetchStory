@@ -273,6 +273,8 @@ sub parse_toc {
     {
 	$info{characters} = $self->parse_characters(%args);
     }
+    $info{universe} = 'Harry Potter';
+
     # fortunately Potions-And-Snitches has a sane chapter system
     if ($content =~ m#<span class="label">Chapters:\s*</span>\s*(\d+)#s)
     {

@@ -202,6 +202,7 @@ sub parse_toc {
 	$info{summary} = $self->parse_summary(%args);
     }
     $info{characters} = '';
+    $info{universe} = 'Harry Potter';
     while ($content =~ m#<a href\s*=\s*"(http://www.fictionalley.org/authors/\w+/\w+\.html)"\s*class\s*=\s*"chapterlink">#g)
     {
 	my $ch_url = $1;

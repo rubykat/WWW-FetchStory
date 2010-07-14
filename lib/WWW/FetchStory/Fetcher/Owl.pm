@@ -191,6 +191,7 @@ sub parse_toc {
     {
 	$info{characters} = $1;
     }
+    $info{universe} = 'Harry Potter';
 
     # Owl does not have a sane chapter system
     my $fmt = 'http://owl.tauri.org/stories.php?sid=%d&action=print';
