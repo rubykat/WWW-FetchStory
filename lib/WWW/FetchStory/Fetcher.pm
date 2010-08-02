@@ -338,7 +338,7 @@ sub parse_title {
 
     my $content = $args{content};
     my $title = '';
-    if ($content =~ /<(?:b|strong)>Title:\s*<\/(?:b|strong)>\s*"?(.*?)"?\s*<(?:br|p|\/p|div|\/div)/si)
+    if ($content =~ /<(?:b|strong)>Title:?\s*<\/(?:b|strong)>:?\s*"?(.*?)"?\s*<(?:br|p|\/p|div|\/div)/si)
     {
 	$title = $1;
     }
