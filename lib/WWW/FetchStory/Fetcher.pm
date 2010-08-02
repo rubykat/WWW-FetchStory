@@ -376,7 +376,7 @@ sub parse_author {
 
     my $content = $args{content};
     my $author = '';
-    if ($content =~ /<(?:b|strong)>Author:\s*<\/(?:b|strong)>\s*"?(.*?)"?\s*<(?:br|p|\/p|div|\/div)/si)
+    if ($content =~ /<(?:b|strong)>Author:?\s*<\/(?:b|strong)>:?\s*"?(.*?)"?\s*<(?:br|p|\/p|div|\/div)/si)
     {
 	$author = $1;
     }
@@ -410,7 +410,7 @@ sub parse_summary {
 
     my $content = $args{content};
     my $summary = '';
-    if ($content =~ /<(?:b|strong)>Summary:\s*<\/(?:b|strong)>\s*"?(.*?)"?\s*<(?:br|p|\/p|div|\/div)/si)
+    if ($content =~ /<(?:b|strong)>Summary:?\s*<\/(?:b|strong)>:?\s*"?(.*?)"?\s*<(?:br|p|\/p|div|\/div)/si)
     {
 	$summary = $1;
     }
@@ -448,7 +448,7 @@ sub parse_characters {
 
     my $content = $args{content};
     my $characters = '';
-    if ($content =~ /<(?:b|strong)>Characters:\s*<\/(?:b|strong)>\s*"?(.*?)"?\s*<(?:br|p|\/p|div|\/div)/si)
+    if ($content =~ /<(?:b|strong)>Characters:?\s*<\/(?:b|strong)>:?\s*"?(.*?)"?\s*<(?:br|p|\/p|div|\/div)/si)
     {
 	$characters = $1;
     }
