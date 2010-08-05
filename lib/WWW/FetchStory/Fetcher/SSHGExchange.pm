@@ -112,6 +112,7 @@ sub parse_toc {
     $info{summary} = $summary;
 
     my $author = $self->parse_author(%args);
+    $author =~ s/Temporarily Disillusioned/Unknown/;
     $info{author} = $author;
 
     $info{characters} = "Hermione Granger, Severus Snape";
