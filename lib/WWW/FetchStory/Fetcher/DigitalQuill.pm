@@ -54,7 +54,7 @@ sub allow {
     my $self = shift;
     my $url = shift;
 
-    return ($url =~ /owl\.tauri\.org/);
+    return ($url =~ /www\.digitial-quill\.org/);
 } # allow
 
 =head1 Private Methods
