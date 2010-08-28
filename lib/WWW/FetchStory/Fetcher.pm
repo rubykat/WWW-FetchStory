@@ -366,6 +366,8 @@ sub parse_title {
     {
 	$title = $1;
     }
+    $title =~ s/<u>//ig;
+    $title =~ s/<\/u>//ig;
     return $title;
 } # parse_title
 
