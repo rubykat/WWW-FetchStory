@@ -176,32 +176,10 @@ sub parse_toc {
 
     my @chapters = ();
     $info{url} = $args{url};
-    if ($content =~ m/<h1\s*class\s*=\s*"title"[^>]*>([^<]+)\s*by\s*<a/s)
-    {
-	$info{title} = $1;
-	$info{title} =~ s/&#039;/'/g;
-    }
-    else
-    {
-	$info{title} = $self->parse_title(%args);
-    }
-    if ($content =~ m/<h1\s*class\s*=\s*"title"[^>]*>[^<]+\s*by\s*<a href="[^"]+">([^<]+)<\/a>/s)
-    {
-	$info{author} = $1;
-    }
-    else
-    {
-	$info{author} = $self->parse_author(%args);
-    }
-    if ($content =~ /<div class="summary"[^>]*>[\w\s]*<br \/>\s*<i>\s*(.*?)<\/i>\s*<\/div>/s)
-    {
-	$info{summary} = $1;
-    }
-    else
-    {
-	$info{summary} = $self->parse_summary(%args);
-    }
-    $info{characters} = '';
+    $info{title} = $self->parse_title(%args);
+    $info{author} = $self->parse_author(%args);
+    $info{summary} = $self->parse_summary(%args);
+    $info{characters} = $self->parse_characters(%args);
     $info{universe} = 'Harry Potter';
     while ($content =~ m#<a href\s*=\s*"(http://www.fictionalley.org/authors/\w+/\w+\.html)"\s*class\s*=\s*"chapterlink">#g)
     {
@@ -211,10 +189,88 @@ sub parse_toc {
     }
 
     $info{chapters} = \@chapters;
-    warn "WARNING: this interface is incomplete.";
 
     return %info;
 } # parse_toc
+
+=head2 parse_title
+
+Get the title from the content
+
+=cut
+sub parse_title {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+
+    my $content = $args{content};
+    my $title = '';
+    if ($content =~ m/<h1\s*class\s*=\s*"title"[^>]*>([^<]+)\s*by\s*<a/s)
+    {
+	$title = $1;
+	$title =~ s/&#039;/'/g;
+    }
+    else
+    {
+	$title = $self->SUPER::parse_title(%args);
+    }
+    return $title;
+} # parse_title
+
+=head2 parse_author
+
+Get the author from the content
+
+=cut
+sub parse_author {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+
+    my $content = $args{content};
+    my $author = '';
+    if ($content =~ m/<h1\s*class\s*=\s*"title"[^>]*>[^<]+\s*by\s*<a href="[^"]+">([^<]+)<\/a>/s)
+    {
+	$author = $1;
+    }
+    else
+    {
+	$author = $self->SUPER::parse_author(%args);
+    }
+    return $author;
+} # parse_author
+
+=head2 parse_summary
+
+Get the summary from the content
+
+=cut
+sub parse_summary {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+
+    my $content = $args{content};
+    my $summary = '';
+    if ($content =~ /<div class="summary"[^>]*>[\w\s]*<br \/>\s*<i>\s*(.*?)<\/i>\s*<\/div>/s)
+    {
+	$summary = $1;
+    }
+    else
+    {
+	$summary = $self->SUPER::parse_summary(%args);
+    }
+    return $summary;
+} # parse_summary
 
 1; # End of WWW::FetchStory::Fetcher::FictionAlley
 __END__

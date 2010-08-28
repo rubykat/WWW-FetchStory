@@ -248,6 +248,33 @@ sub get_toc {
     return $self->get_page("${url}?format=light");
 } # get_toc
 
+=head2 parse_author
+
+Get the author from the content
+
+=cut
+sub parse_author {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+
+    my $content = $args{content};
+    my $author = $self->SUPER::parse_author(%args);
+
+    if ($author =~ m#<span class='ljuser ljuser-name_\w+' lj:user='\w+' style='white-space: nowrap;'><a href='http://\w+\.livejournal\.com/profile'><img src='http://l-stat\.livejournal\.com/img/userinfo\.gif' alt='\[info\]' width='17' height='17' style='vertical-align: bottom; border: 0; padding-right: 1px;' /></a><a href='http://\w+\.livejournal\.com/'><b>(.*?)</b></a></span>#)
+    {
+	$author = $1;
+    }
+    elsif ($author =~ m#<a href='http://[-\w]+\.livejournal\.com/'><b>(.*?)</b></a>#)
+    {
+	$author = $1;
+    }
+    return $author;
+} # parse_author
+
 =head2 parse_toc
 
 Parse the table-of-contents file.

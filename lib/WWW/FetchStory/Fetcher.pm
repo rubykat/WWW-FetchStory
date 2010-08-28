@@ -354,6 +354,14 @@ sub parse_title {
     {
 	$title = $1;
     }
+    elsif ($content =~ m#<h3>([^<]+)</h3>#is)
+    {
+	$title = $1;
+    }
+    elsif ($content =~ m#<h4>([^<]+)</h4>#is)
+    {
+	$title = $1;
+    }
     elsif ($content =~ m#<title>([^<]+)</title>#is)
     {
 	$title = $1;
@@ -414,6 +422,14 @@ sub parse_summary {
     {
 	$summary = $1;
     }
+    elsif ($content =~ m#<i>Summary:</i>\s*([^<]+)\s*<br>#s)
+    {
+	$summary = $1;
+    }
+    elsif ($content =~ /<i>Summary:<\/i>\s*(.*?)\s*$/m)
+    {
+	$summary = $1;
+    }
     elsif ($content =~ /\bSummary:\s*"?(.*?)"?\s*<(?:br|p|\/p|div|\/div)/si)
     {
 	$summary = $1;
@@ -448,7 +464,7 @@ sub parse_characters {
 
     my $content = $args{content};
     my $characters = '';
-    if ($content =~ /<(?:b|strong)>Characters:?\s*<\/(?:b|strong)>:?\s*"?(.*?)"?\s*<(?:br|p|\/p|div|\/div)/si)
+    if ($content =~ />Characters:?\s*<\/(?:b|strong)>:?\s*"?(.*?)"?\s*<(?:br|p|\/p|div|\/div)/si)
     {
 	$characters = $1;
     }
@@ -456,15 +472,11 @@ sub parse_characters {
     {
 	$characters = $1;
     }
-    elsif ($content =~ m#(?:Pairings|Characters):</b>([^<]+)#is)
+    elsif ($content =~ m#<i>Characters:</i>\s*([^<]+)\s*<br>#s)
     {
 	$characters = $1;
     }
-    elsif ($content =~ m#(?:Pairings|Characters):</strong>([^<]+)#is)
-    {
-	$characters = $1;
-    }
-    elsif ($content =~ m#(?:Pairings|Characters):</u>([^<]+)#is)
+    elsif ($content =~ m#(?:Pairings|Characters):</(?:b|strong|u)>([^<]+)#is)
     {
 	$characters = $1;
     }

@@ -155,31 +155,9 @@ sub parse_toc {
     {
 	return $self->SUPER::parse_toc(%args);
     }
-    if ($content =~ m#<p id="authorinfo">by <strong>([^<]+)</strong>#)
-    {
-	$info{author} = $1;
-    }
-    else
-    {
-	$info{author} = $self->parse_author(%args);
-    }
-    if ($content =~ m#<h2>([^<]+)</h2>#)
-
-    {
-	$info{title} = $1;
-    }
-    else
-    {
-	$info{title} = $self->parse_title(%args);
-    }
-    if ($content =~ m#<p class="summary">(.*?)</p>#)
-    {
-	$info{summary} = $1;
-    }
-    else
-    {
-	$info{summary} = $self->parse_summary(%args);
-    }
+    $info{author} = $self->parse_author(%args);
+    $info{title} = $self->parse_title(%args);
+    $info{summary} = $self->parse_summary(%args);
     if ($content =~ m#<span class="storyinfo">([\w\s]+) \| ([\w-]+) \| (.*?) \| ([\d,]+) words</span>#)
     {
 	$info{universe} = $1;
@@ -217,6 +195,58 @@ sub parse_toc {
 
     return %info;
 } # parse_toc
+
+=head2 parse_author
+
+Get the author from the content
+
+=cut
+sub parse_author {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+
+    my $content = $args{content};
+    my $author = '';
+    if ($content =~ m#<p id="authorinfo">by <strong>([^<]+)</strong>#)
+    {
+	$author = $1;
+    }
+    else
+    {
+	$author = $self->SUPER::parse_author(%args);
+    }
+    return $author;
+} # parse_author
+
+=head2 parse_summary
+
+Get the summary from the content
+
+=cut
+sub parse_summary {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+
+    my $content = $args{content};
+    my $summary = '';
+    if ($content =~ m#<p class="summary">(.*?)</p>#)
+    {
+	$summary = $1;
+    }
+    else
+    {
+	$summary = $self->SUPER::parse_summary(%args);
+    }
+    return $summary;
+} # parse_summary
 
 1; # End of WWW::FetchStory::Fetcher::TardisBigBang3
 __END__

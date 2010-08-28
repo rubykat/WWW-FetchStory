@@ -107,32 +107,12 @@ sub parse_toc {
 	return $self->SUPER::parse_toc(%args);
     }
 
-    if ($content =~ /<h4>(.*?)<\/h4>/)
-    {
-	$info{title} = $1;
-    }
-    elsif ($content =~ m#<b><a href="viewstory.php\?sid=${sid}">([^<]+)</a></b> by <b><a href="viewuser.php#s)
-    {
-	$info{title} = $1;
-    }
-    else
-    {
-	$info{title} = $self->parse_title(%args);
-    }
-    if ($content =~ m#<a href="viewuser.php\?uid=\d+">([^<]+)</a>#s)
-    {
-	$info{author} = $1;
-    }
-    else
-    {
-	$info{author} = $self->parse_author(%args);
-    }
-    if ($content =~ /<i>Summary:<\/i>\s*(.*?)\s*$/m)
-    {
-	$info{summary} = $1;
-    }
+    $info{title} = $self->parse_title(%args);
+    $info{author} = $self->parse_author(%args);
+    $info{summary} = $self->parse_summary(%args);
+
     # if this is a single-chapter story, the summary is on the author page
-    elsif ($content =~ m#<a href="viewuser.php\?uid=(\d+)">#s)
+    if (!$info{summary} and $content =~ m#<a href="viewuser.php\?uid=(\d+)">#s)
     {
 	my $auth_url = sprintf("http://ashwinder.sycophanthex.com/viewuser.php?uid=%d", $1);
 	my $auth_page = $self->get_page($auth_url);
@@ -143,7 +123,6 @@ sub parse_toc {
     }
     $info{characters} = 'Hermione Granger, Severus Snape';
     $info{universe} = 'Harry Potter';
-
 
     # Ashwinder does not have a sane chapter system
     my $fmt = 'http://ashwinder.sycophanthex.com/viewstory.php?action=printable&sid=%d';
@@ -165,6 +144,58 @@ sub parse_toc {
 
     return %info;
 } # parse_toc
+
+=head2 parse_title
+
+Get the title from the content
+
+=cut
+sub parse_title {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+
+    my $content = $args{content};
+    my $title = '';
+    if ($content =~ m#<b><a href="viewstory.php\?sid=\d+">([^<]+)</a></b> by <b><a href="viewuser.php#s)
+    {
+	$title = $1;
+    }
+    else
+    {
+	$title = $self->SUPER::parse_title(%args);
+    }
+    return $title;
+} # parse_title
+
+=head2 parse_author
+
+Get the author from the content
+
+=cut
+sub parse_author {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+
+    my $content = $args{content};
+    my $author = '';
+    if ($content =~ m#<a href="viewuser.php\?uid=\d+">([^<]+)</a>#s)
+    {
+	$author = $1;
+    }
+    else
+    {
+	$author = $self->SUPER::parse_author(%args);
+    }
+    return $author;
+} # parse_author
 
 1; # End of WWW::FetchStory::Fetcher::Ashwinder
 __END__

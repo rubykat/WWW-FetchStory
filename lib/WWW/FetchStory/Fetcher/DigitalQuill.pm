@@ -107,32 +107,11 @@ sub parse_toc {
 	return $self->SUPER::parse_toc(%args);
     }
 
-    if ($content =~ m#<h4>\s*([^<]+)</h4>#)
-    {
-	$info{title} = $1;
-    }
-    else
-    {
-	$info{title} = $self->parse_title(%args);
-    }
+    $info{title} = $self->parse_title(%args);
+    $info{author} = $self->parse_author(%args);
+    $info{summary} = $self->parse_summary(%args);
+    $info{characters} = $self->parse_characters(%args);
 
-    if ($content =~ m#by <a href="viewuser.php\?uid=\d+">([^<]+)</a>#s)
-    {
-	$info{author} = $1;
-    }
-    else
-    {
-	$info{author} = $self->parse_author(%args);
-    }
-
-    if ($content =~ m#<i>Summary:</i>\s*([^<]+)\s*<br>#s)
-    {
-	$info{summary} = $1;
-    }
-    if ($content =~ m#<i>Characters:</i>\s*([^<]+)\s*<br>#s)
-    {
-	$info{characters} = $1;
-    }
     $info{universe} = 'Harry Potter';
 
     # DigitalQuill does not have a sane chapter system
@@ -148,6 +127,32 @@ sub parse_toc {
 
     return %info;
 } # parse_toc
+
+=head2 parse_author
+
+Get the author from the content
+
+=cut
+sub parse_author {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+
+    my $content = $args{content};
+    my $author = '';
+    if ($content =~ m#<a href="viewuser.php\?uid=\d+">([^<]+)</a>#s)
+    {
+	$author = $1;
+    }
+    else
+    {
+	$author = $self->SUPER::parse_author(%args);
+    }
+    return $author;
+} # parse_author
 
 1; # End of WWW::FetchStory::Fetcher::DigitalQuill
 __END__

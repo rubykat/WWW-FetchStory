@@ -233,30 +233,123 @@ sub parse_toc {
     {
 	return $self->SUPER::parse_toc(%args);
     }
+    $info{title} = $self->parse_title(%args);
+    $info{author} = $self->parse_author(%args);
+    $info{summary} = $self->parse_summary(%args);
+    $info{characters} = $self->parse_characters(%args);
+    $info{universe} = 'Harry Potter';
+
+    # fortunately Potions-And-Snitches has a sane chapter system
+    if ($content =~ m#<span class="label">Chapters:\s*</span>\s*(\d+)#s)
+    {
+	my $fmt = 'http://www.potionsandsnitches.net/fanfiction/viewstory.php?action=printable&textsize=0&sid=%d&chapter=%d';
+	my $num_ch = $1;
+	for (my $i=1; $i <= $num_ch; $i++)
+	{
+	    my $ch_url = sprintf($fmt, $sid, $i);
+	    warn "chapter=$ch_url\n" if $self->{verbose};
+	    push @chapters, $ch_url;
+	}
+    }
+
+    $info{chapters} = \@chapters;
+
+    return %info;
+} # parse_toc
+
+=head2 parse_title
+
+Get the title from the content
+
+=cut
+sub parse_title {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+
+    my $content = $args{content};
+    my $title = '';
     if ($content =~ m#<div id="pagetitle"><a href="viewstory.php\?sid=\d+">([^<]+)</a>#s)
     {
-	$info{title} = $1;
+	$title = $1;
     }
     else
     {
-	$info{title} = $self->parse_title(%args);
+	$title = $self->SUPER::parse_title(%args);
     }
+    return $title;
+} # parse_title
+
+=head2 parse_author
+
+Get the author from the content
+
+=cut
+sub parse_author {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+
+    my $content = $args{content};
+    my $author = '';
     if ($content =~ m#\s*by\s*<a href="viewuser.php\?uid=\d+">([^<]+)</a></div>#s)
     {
-	$info{author} = $1;
+	$author = $1;
     }
     else
     {
-	$info{author} = $self->parse_author(%args);
+	$author = $self->SUPER::parse_author(%args);
     }
+    return $author;
+} # parse_author
+
+=head2 parse_summary
+
+Get the summary from the content
+
+=cut
+sub parse_summary {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+
+    my $content = $args{content};
+    my $summary = '';
     if ($content =~ m#<span class="label">Summary:</span>\s*(.*?)\s*<br><br>#s)
     {
-	$info{summary} = $1;
+	$summary = $1;
     }
     else
     {
-	$info{summary} = $self->parse_summary(%args);
+	$summary = $self->SUPER::parse_summary(%args);
     }
+    return $summary;
+} # parse_summary
+
+=head2 parse_characters
+
+Get the characters from the content
+
+=cut
+sub parse_characters {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+
+    my $content = $args{content};
+    my $characters = '';
     if ($content =~ m#<span class="label">Characters:\s*</span>(.*?)<td#s)
     {
 	my $chars_str = $1;
@@ -267,32 +360,14 @@ sub parse_toc {
 	    $character =~ s/!Snape and Harry \(required\)/Harry Potter, Severus Snape/;
 	    push @chars, $character;
 	}
-	$info{characters} = join(', ', @chars);
+	$characters = join(', ', @chars);
     }
     else
     {
-	$info{characters} = $self->parse_characters(%args);
+	$characters = $self->SUPER::parse_characters(%args);
     }
-    $info{universe} = 'Harry Potter';
-
-    # fortunately Potions-And-Snitches has a sane chapter system
-    if ($content =~ m#<span class="label">Chapters:\s*</span>\s*(\d+)#s)
-    {
-	my $num_ch = $1;
-	for (my $i=1; $i <= $num_ch; $i++)
-	{
-	    my $fmt = 'http://www.potionsandsnitches.net/fanfiction/viewstory.php?action=printable&textsize=0&sid=%d&chapter=%d';
-	    my $ch_url = sprintf($fmt, $sid, $i);
-	    warn "chapter=$ch_url\n" if $self->{verbose};
-	    push @chapters, $ch_url;
-	}
-    }
-
-    $info{chapters} = \@chapters;
-    warn "WARNING: this interface is incomplete.";
-
-    return %info;
-} # parse_toc
+    return $characters;
+} # parse_characters
 
 1; # End of WWW::FetchStory::Fetcher::PotionsAndSnitches
 __END__
