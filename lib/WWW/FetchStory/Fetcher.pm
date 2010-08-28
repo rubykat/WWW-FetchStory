@@ -174,7 +174,15 @@ sub get_story_basename {
     for (my $i = 0; $i < @words and @first_words < $max_words; $i++)
     {
 	# also skip little words
-	if ($words[$i] !~ /^(the|a|an|of|and|to)$/)
+	if ($words[$i] =~ /^(the|a|an|and)$/)
+	{
+	}
+	elsif (@first_words >= 2 and $words[$i] =~ /^(of|and|to|in)$/)
+	{
+	    # if the third word is a little word, forget it
+	    last;
+	}
+	else
 	{
 	    push @first_words, $words[$i];
 	}
@@ -213,6 +221,10 @@ sub tidy {
     }
 
     if ($args{content} =~ m#<body[^>]*>(.*)</body>#is)
+    {
+	$story = $1;
+    }
+    elsif ($args{content} =~ m#</head>(.*)#is)
     {
 	$story = $1;
     }
