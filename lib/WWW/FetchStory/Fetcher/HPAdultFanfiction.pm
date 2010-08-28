@@ -149,7 +149,7 @@ sub parse_toc {
     }
 
     $info{chapters} = \@chapters;
-    warning "This interface is incomplete.\n";
+    warn "This interface is incomplete.\n";
 
     return %info;
 } # parse_toc
