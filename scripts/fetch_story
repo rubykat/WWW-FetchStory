@@ -65,6 +65,7 @@ sub process_args ($) {
     $op->getoptions($opts,
 	       'verbose!',
 	       'debug!',
+	       'basename=s',
 	       'manpage',
 	      ) or pod2usage(2);
 
@@ -88,11 +89,24 @@ MAIN: {
     process_args(\%data);
 
     my $fs = WWW::FetchStory->new(%data);
+    my $count = 1;
     foreach my $url (@ARGV)
     {
 	my %info = $fs->fetch_story(%data,
 				    url=>$url);
 	print Dump(\%info);
+	if ($data{basename})
+	{
+	    my $cnt = $count;
+	    foreach my $file (@{$info{storyfiles}})
+	    {
+		my $command = sprintf("mv %s %s%02d.html",
+		    $file, $data{basename}, $cnt);
+		print $command, "\n";
+		system($command) == 0 or die "FAILED: $command - $!";
+		$cnt++;
+	    }
+	}
+	$count++;
     }
-
 }
