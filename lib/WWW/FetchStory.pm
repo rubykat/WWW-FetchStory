@@ -21,6 +21,11 @@ such as fanfiction.net; it deals with multi-file stories,
 and strips all the extras from the HTML (such as navbars and javascript)
 so that all you get is the story text and its formatting.
 
+=head2 Fetcher Plugins
+
+In order to tidy the HTML and parse the pages for data about the story,
+site-specific "Fetcher" plugins are required.
+
 =cut
 
 use WWW::FetchStory::Fetcher;
@@ -104,6 +109,29 @@ sub fetch_story ($%) {
     }
 
 } # fetch_story
+
+=head2 list_fetchers
+
+    my %fetchers = list_fetchers();
+
+=cut
+sub list_fetchers ($%) {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	verbose=>0,
+	@_
+    );
+
+    my %fetchers = ();
+    my @all_fetchers = $self->fetchers();
+    foreach my $fe (@all_fetchers)
+    {
+	$fetchers{$fe->name()} = $fe->info();
+    }
+    return %fetchers;
+
+} # list_fetchers
 
 =head1 BUGS
 

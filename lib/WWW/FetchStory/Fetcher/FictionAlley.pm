@@ -31,6 +31,22 @@ sub new {
     return ($self);
 } # new
 
+=head2 info
+
+Information about the fetcher.
+
+$info = $self->info();
+
+=cut
+
+sub info {
+    my $self = shift;
+    
+    my $info = "(http://www.fictionalley.org/) A Harry Potter fiction archive.";
+
+    return $info;
+} # info
+
 =head2 priority
 
 The priority of this fetcher.  Fetchers with higher priority
@@ -72,7 +88,7 @@ sub allow {
     my $self = shift;
     my $url = shift;
 
-    return ($url =~ /fictionalley/);
+    return ($url =~ /(fictionalley|schnoogle\.com|astronomytower\.org|riddikulus\.org|thedarkarts\.org)/);
 } # allow
 
 =head1 Private Methods

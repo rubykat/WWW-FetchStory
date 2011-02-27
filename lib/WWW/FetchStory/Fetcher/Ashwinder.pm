@@ -13,6 +13,22 @@ This is the Ashwinder story-fetching plugin for WWW::FetchStory.
 
 our @ISA = qw(WWW::FetchStory::Fetcher);
 
+=head2 info
+
+Information about the fetcher.
+
+$info = $self->info();
+
+=cut
+
+sub info {
+    my $self = shift;
+    
+    my $info = "(http://ashwinder.sycophanthex.com/) A Severus Snape/Hermione Granger HP fiction archive.";
+
+    return $info;
+} # info
+
 =head2 priority
 
 The priority of this fetcher.  Fetchers with higher priority

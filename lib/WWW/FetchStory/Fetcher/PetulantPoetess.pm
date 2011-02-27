@@ -13,6 +13,22 @@ This is the PetulantPoetess story-fetching plugin for WWW::FetchStory.
 
 our @ISA = qw(WWW::FetchStory::Fetcher);
 
+=head2 info
+
+Information about the fetcher.
+
+$info = $self->info();
+
+=cut
+
+sub info {
+    my $self = shift;
+    
+    my $info = "(http://www.thepetulantpoetess.com/) A Harry Potter fiction archive.";
+
+    return $info;
+} # info
+
 =head2 priority
 
 The priority of this fetcher.  Fetchers with higher priority
@@ -54,7 +70,7 @@ sub allow {
     my $self = shift;
     my $url = shift;
 
-    return ($url =~ /thepetulantpoetess/);
+    return ($url =~ /thepetulantpoetess\.com/);
 } # allow
 
 =head1 Private Methods

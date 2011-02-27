@@ -15,6 +15,23 @@ our @ISA = qw(WWW::FetchStory::Fetcher);
 
 =head1 METHODS
 
+=head2 info
+
+Information about the fetcher.
+
+$info = $self->info();
+
+=cut
+
+sub info {
+    my $self = shift;
+    
+    my $info = "Default fetcher (does not parse story info well)";
+
+    return $info;
+} # info
+
+
 =head2 priority
 
 The priority of this fetcher.  Fetchers with higher priority

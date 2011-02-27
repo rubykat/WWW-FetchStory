@@ -57,6 +57,28 @@ sub name {
     return pop @bits;
 } # name
 
+=head2 info
+
+Information about the fetcher.
+By default this just returns the formatted name.
+
+$info = $self->info();
+
+=cut
+
+sub info {
+    my $self = shift;
+    
+    my $name = $self->name();
+
+    # split the name into words
+    my $info = $name;
+    $info =~ s/([A-Z])/ $1/g;
+    $info =~ s/^\s+//;
+
+    return $info;
+} # info
+
 =head2 priority
 
 The priority of this fetcher.  Fetchers with higher priority

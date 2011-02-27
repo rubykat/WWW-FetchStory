@@ -15,6 +15,22 @@ our @ISA = qw(WWW::FetchStory::Fetcher::LiveJournal);
 
 =head1 METHODS
 
+=head2 info
+
+Information about the fetcher.
+
+$info = $self->info();
+
+=cut
+
+sub info {
+    my $self = shift;
+    
+    my $info = "(http://community.livejournal.com/sshg_exchange/) Severus Snape/Hermione Granger fiction exchange comm.";
+
+    return $info;
+} # info
+
 =head2 priority
 
 The priority of this fetcher.  Fetchers with higher priority

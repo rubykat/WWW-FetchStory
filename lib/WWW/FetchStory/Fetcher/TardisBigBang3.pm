@@ -13,6 +13,22 @@ This is the TardisBigBang3 story-fetching plugin for WWW::FetchStory.
 
 our @ISA = qw(WWW::FetchStory::Fetcher);
 
+=head2 info
+
+Information about the fetcher.
+
+$info = $self->info();
+
+=cut
+
+sub info {
+    my $self = shift;
+    
+    my $info = "(http://www.tardisbigbang.com/Round3/) Round 3 of the TARDIS BigBang challenge.";
+
+    return $info;
+} # info
+
 =head2 priority
 
 The priority of this fetcher.  Fetchers with higher priority
