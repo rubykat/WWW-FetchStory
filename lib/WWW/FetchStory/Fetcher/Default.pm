@@ -26,7 +26,7 @@ $info = $self->info();
 sub info {
     my $self = shift;
     
-    my $info = "Default fetcher (does not parse story info well)";
+    my $info = "Default fetcher (does not do much)";
 
     return $info;
 } # info

@@ -137,6 +137,11 @@ sub parse_toc {
 	    $info{summary} = $1;
 	}
     }
+    else # not a single-chapter story
+    {
+	# remove the wordcount
+	$info{summary} =~ s/\s*\(\d+ words\)//;
+    }
     $info{characters} = 'Hermione Granger, Severus Snape';
     $info{universe} = 'Harry Potter';
 
