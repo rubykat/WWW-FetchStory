@@ -7,19 +7,21 @@ fetch_story - fetch a story from the internet
 
 fetch_story [ --help | --manpage | --list ]
 
-fetch_story [ --basename I<string> ] I<url>
+fetch_story [ --basename I<string> ] [ --toc ] I<url>
 
 =head1 DESCRIPTION
 
-This fetches a story from the net (including multi-part stories)
-tidies up the HTML, and saves it.
-Multi-chapter stories are saved to multiple files, one file per chapter.
+This fetches a story from the net (including multi-part stories) tidies up the
+HTML, and saves it.  If a story is deduced to be a multi-chapter story, all
+chapters of the story are downloaded, and saved to separate files.
 
 =head2 Fetcher Plugins
 
 In order to tidy the HTML and parse the pages for data about the story,
 site-specific "Fetcher" plugins have been written for various sites
 such as fanfiction.net, LiveJournal and others.
+These plugins can scrape meta-information about the story from the
+given page, including the URLs of all the chapters of a multi-chapter story.
 
 =head1 OPTIONS
 
@@ -27,9 +29,8 @@ such as fanfiction.net, LiveJournal and others.
 
 =item --basename I<string>
 
-When a story is downloaded, the filename is constructed from the title of the
-story.  This option will rename the file(s) to use the given string as the
-"base" name (with the addition of 1,2 etc for multi-chapter stories).
+This option uses the given string as the "base" name of the story file(s)
+instead of constructing the name from the title of the story.
 
 =item --help
 
@@ -42,6 +43,10 @@ List the available fetcher plugins.
 =item --manpage
 
 Print manual page and exit. Requires "perldoc" to be installed.
+
+=item --toc
+
+Build a table-of-contents file for the story.
 
 =item --verbose
 
@@ -95,6 +100,7 @@ sub process_args ($) {
 	       'debug!',
 	       'basename=s',
 	       'list',
+	       'toc',
 	       'manpage',
 	      ) or pod2usage(2);
 
@@ -134,18 +140,6 @@ MAIN: {
 	    my %info = $fs->fetch_story(%data,
 					url=>$url);
 	    print Dump(\%info);
-	    if ($data{basename})
-	    {
-		my $cnt = $count;
-		foreach my $file (@{$info{storyfiles}})
-		{
-		    my $newfile = sprintf("%s%02d.html",
-					  $data{basename}, $cnt);
-		    move($file, $newfile);
-		    $cnt++;
-		}
-	    }
-	    $count++;
 	}
     }
 }

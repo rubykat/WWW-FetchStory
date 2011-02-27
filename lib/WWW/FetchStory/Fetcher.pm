@@ -126,7 +126,29 @@ sub allow {
 
 Fetch the story, with the given options.
 
-    %story_info = $obj->fetch(url=>$url);
+    %story_info = $obj->fetch(
+	url=>$url,
+	basename=>$basename,
+	toc=>0);
+
+=over
+
+=item basename
+
+Optional basename used to construct the filenames.
+If this is not given, the basename is derived from the title of the story.
+
+=item toc
+
+Build a table-of-contents file if this is true.
+
+=item url
+
+The URL of the story.  The page is scraped for meta-information about the story,
+including the title and author.  Site-specific Fetcher plugins can find additional
+information, including the URLs of all the chapters in a multi-chapter story.
+
+=back
 
 =cut
 
@@ -134,6 +156,7 @@ sub fetch {
     my $self = shift;
     my %args = (
 	url=>'',
+	basename=>'',
 	@_
     );
 
@@ -148,21 +171,33 @@ sub fetch {
     my @ch_urls = @{$story_info{chapters}};
     my $one_chapter = (@ch_urls == 1);
     my $first_chapter_is_toc = $story_info{toc_first};
-    my $basename = $self->get_story_basename($story_info{title});
+    my $basename = ($args{basename}
+		    ? $args{basename}
+		    : $self->get_story_basename($story_info{title}));
+    $story_info{basename} = $basename;
     my @storyfiles = ();
+    my @ch_titles = ();
     my $count = (($one_chapter or $first_chapter_is_toc) ? 0 : 1);
     foreach (my $i = 0; $i < @ch_urls; $i++)
     {
 	my $ch_title = sprintf("%s (%d)", $story_info{title}, $i+1);
-	my $fn = $self->get_chapter(base=>$basename,
+	my %ch_info = $self->get_chapter(base=>$basename,
 				    count=>$count,
 				    url=>$ch_urls[$i],
 				    title=>$ch_title);
-	push @storyfiles, $fn;
+	push @storyfiles, $ch_info{filename};
+	push @ch_titles, $ch_info{title};
 	$count++;
     }
 
     $story_info{storyfiles} = \@storyfiles;
+    $story_info{chapter_titles} = \@ch_titles;
+    if ($args{toc}) # build a table-of-contents
+    {
+	my $toc = $self->build_toc(info=>\%story_info);
+	unshift @{$story_info{storyfiles}}, $toc;
+	unshift @{$story_info{chapter_titles}}, "Table of Contents";
+    }
 
     return %story_info;
 } # fetch
@@ -405,6 +440,34 @@ sub parse_title {
     return $title;
 } # parse_title
 
+=head2 parse_ch_title
+
+Get the chapter title from the content
+
+=cut
+sub parse_ch_title {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+
+    my $content = $args{content};
+    my $title = '';
+    if ($content =~ /Chapter \d+[:.]?\s*([^<]+)/si)
+    {
+	$title = $1;
+    }
+    else
+    {
+	$title = $self->parse_title(%args);
+    }
+    $title =~ s/<u>//ig;
+    $title =~ s/<\/u>//ig;
+    return $title;
+} # parse_ch_title
+
 =head2 parse_author
 
 Get the author from the content
@@ -543,8 +606,10 @@ sub get_chapter {
 
     my $content = $self->get_page($args{url});
 
-    $content = $self->tidy(content=>$content,
-			   title=>$args{title});
+    my $chapter_title = $self->parse_ch_title(content=>$content, url=>$args{url});
+    $chapter_title = $args{title} if !$chapter_title;
+
+    $content = $self->tidy(content=>$content, title=>$chapter_title);
 
     my $filename = ($args{count}
 	? sprintf("%s%02d.html", $args{base}, $args{count})
@@ -554,8 +619,55 @@ sub get_chapter {
     print $ofh $content;
     close($ofh);
 
-    return $filename;
+    return (
+	filename=>$filename,
+	title=>$chapter_title,
+	);
 } # get_chapter
+
+=head2 build_toc
+
+Build a local table-of-contents file from the meta-info about the story.
+
+    $self->build_toc(info=>\%info);
+
+=cut
+sub build_toc {
+    my $self = shift;
+    my %args = (
+	@_
+    );
+    my $info = $args{info};
+
+    my $filename = sprintf("%s00.html", $info->{basename});
+
+    my $ofh;
+    open($ofh, ">",  $filename) || die "Can't write to $filename";
+    print $ofh <<EOT;
+<html>
+<head><title>$info->{title}</title></head>
+<body>
+<h1>$info->{title}</h1>
+<p>by $info->{author}</p>
+<p>Fetched from <a href="$info->{url}">$info->{url}</a></p>
+<p><b>Summary:</b>
+$info->{summary}
+</p>
+<p><b>Characters:</b> $info->{characters}</p>
+<ol>
+EOT
+
+    my @storyfiles = @{$info->{storyfiles}};
+    my @ch_titles = @{$info->{chapter_titles}};
+    for (my $i=0; $i < @storyfiles; $i++)
+    {
+	print $ofh sprintf("<li><a href=\"%s\">%s</a></li>", $storyfiles[$i], $ch_titles[$i]);
+    }
+    print $ofh "\n</ol>\n</body></html>\n";
+    close($ofh);
+
+    return $filename;
+} # build_toc
 
 =head2 tidy_chars
 

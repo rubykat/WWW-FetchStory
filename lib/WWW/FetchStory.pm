@@ -75,7 +75,8 @@ sub new {
 
     my %story_info = fetch_story(
 				 url=>$url,
-				 verbose=>1);
+				 verbose=>0,
+				 toc=>0);
 
 =cut
 sub fetch_story ($%) {
@@ -83,6 +84,7 @@ sub fetch_story ($%) {
     my %args = (
 	url=>'',
 	verbose=>0,
+	toc=>0,
 	@_
     );
 
@@ -108,6 +110,7 @@ sub fetch_story ($%) {
 	return $fetcher->fetch(%args);
     }
 
+    return undef;
 } # fetch_story
 
 =head2 list_fetchers
