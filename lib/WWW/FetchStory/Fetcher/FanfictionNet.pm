@@ -147,15 +147,7 @@ sub tidy {
     my $para = "$p1 $p2";
     warn "para=$para\n" if $self->{verbose};
 
-    my $chapter = '';
-    if ($content =~ m#<option[^>]+selected>([^<]+)</option>#s)
-    {
-	$chapter = $1;
-    }
-    elsif ($content =~ m#<SELECT title='chapter navigation'.*?<option[^>]+selected>([^<]+)<#s)
-    {
-	$chapter = $1;
-    }
+    my $chapter = $self->parse_ch_title(%args);
     warn "chapter=$chapter\n" if $self->{verbose};
 
     my $story = '';
@@ -204,7 +196,10 @@ sub tidy {
 	$out .= "</body>\n";
 	$out .= "</html>\n";
     }
-    return $out;
+    return (
+	html=>$out,
+	story=>$story,
+    );
 } # tidy
 
 =head2 parse_toc
@@ -327,6 +322,38 @@ sub parse_toc {
 
     return %info;
 } # parse_toc
+
+=head2 parse_ch_title
+
+Get the chapter title from the content
+
+=cut
+sub parse_ch_title {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+
+    my $content = $args{content};
+    my $title = '';
+    if ($content =~ m#<option[^>]+selected>([^<]+)</option>#s)
+    {
+	$title = $1;
+    }
+    elsif ($content =~ m#<SELECT title='chapter navigation'.*?<option[^>]+selected>([^<]+)<#s)
+    {
+	$title = $1;
+    }
+    else
+    {
+	$title = $self->parse_title(%args);
+    }
+    $title =~ s/<u>//ig;
+    $title =~ s/<\/u>//ig;
+    return $title;
+} # parse_ch_title
 
 1; # End of WWW::FetchStory::Fetcher::FanfictionNet
 __END__

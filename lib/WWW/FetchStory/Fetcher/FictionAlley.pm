@@ -150,7 +150,10 @@ $story
 </body>
 </html>
 EOT
-    return $out;
+    return (
+	html=>$out,
+	story=>$story,
+    );
 } # tidy
 
 =head2 parse_toc

@@ -13,6 +13,8 @@ This is the base class for story-fetching plugins for WWW::FetchStory.
 
 require File::Temp;
 use Encode::ZapCP1252;
+use HTML::Entities;
+use HTML::Strip;
 use YAML::Any;
 
 =head1 METHODS
@@ -33,6 +35,8 @@ sub new {
     {
 	$self->{wget} .= " --load-cookies $ENV{HOME}/cookies.txt";
     }
+    $self->{stripper} = HTML::Strip->new();
+    $self->{stripper}->add_striptag("head");
 
     return ($self);
 } # new
@@ -177,6 +181,7 @@ sub fetch {
     $story_info{basename} = $basename;
     my @storyfiles = ();
     my @ch_titles = ();
+    my @ch_wc = ();
     my $count = (($one_chapter or $first_chapter_is_toc) ? 0 : 1);
     foreach (my $i = 0; $i < @ch_urls; $i++)
     {
@@ -187,11 +192,14 @@ sub fetch {
 				    title=>$ch_title);
 	push @storyfiles, $ch_info{filename};
 	push @ch_titles, $ch_info{title};
+	push @ch_wc, $ch_info{wordcount};
+	$story_info{wordcount} += $ch_info{wordcount};
 	$count++;
     }
 
     $story_info{storyfiles} = \@storyfiles;
     $story_info{chapter_titles} = \@ch_titles;
+    $story_info{chapter_wc} = \@ch_wc;
     if ($args{toc}) # build a table-of-contents
     {
 	my $toc = $self->build_toc(info=>\%story_info);
@@ -304,7 +312,10 @@ sub tidy {
     $out .= "$story\n";
     $out .= "</body>\n";
     $out .= "</html>\n";
-    return $out;
+    return (
+	html=>$out,
+	story=>$story,
+    );
 } # tidy
 
 =head2 get_toc
@@ -609,21 +620,57 @@ sub get_chapter {
     my $chapter_title = $self->parse_ch_title(content=>$content, url=>$args{url});
     $chapter_title = $args{title} if !$chapter_title;
 
-    $content = $self->tidy(content=>$content, title=>$chapter_title);
+    my %tidied = $self->tidy(content=>$content, title=>$chapter_title);
 
+    my %wc = $self->wordcount(content=>$tidied{story});
+
+    #
+    # Write the file
+    #
     my $filename = ($args{count}
 	? sprintf("%s%02d.html", $args{base}, $args{count})
 	: sprintf("%s.html", $args{base}));
     my $ofh;
     open($ofh, ">",  $filename) || die "Can't write to $filename";
-    print $ofh $content;
+    print $ofh $tidied{html};
     close($ofh);
 
     return (
 	filename=>$filename,
 	title=>$chapter_title,
+	wordcount=>$wc{words},
+	charcount=>$wc{chars},
 	);
 } # get_chapter
+
+=head2 wordcount
+
+Figure out the word-count.
+
+=cut
+sub wordcount {
+    my $self = shift;
+    my %args = (
+	@_
+    );
+
+    #
+    # Count the words
+    #
+    my $stripped = $self->{stripper}->parse($args{content});
+    $self->{stripper}->eof;
+    $stripped =~ s/[\n\r]/ /sg; # remove line splits
+    $stripped =~ s/^\s+//;
+    $stripped =~ s/\s+$//;
+    $stripped =~ s/\s+/ /g; # remove excess whitespace
+    my @words = split(' ', $stripped);
+    my $wordcount = @words;
+    my $chars = length($stripped);
+    return (
+	words=>$wordcount,
+	chars=>$chars,
+    );
+} # wordcount
 
 =head2 build_toc
 
@@ -653,15 +700,20 @@ sub build_toc {
 <p><b>Summary:</b>
 $info->{summary}
 </p>
-<p><b>Characters:</b> $info->{characters}</p>
+<p><b>Words:</b> $info->{wordcount}<br/>
+<b>Characters:</b> $info->{characters}</p>
 <ol>
 EOT
 
     my @storyfiles = @{$info->{storyfiles}};
     my @ch_titles = @{$info->{chapter_titles}};
+    my @ch_wc = @{$info->{chapter_wc}};
     for (my $i=0; $i < @storyfiles; $i++)
     {
-	print $ofh sprintf("<li><a href=\"%s\">%s</a></li>", $storyfiles[$i], $ch_titles[$i]);
+	print $ofh sprintf("<li><a href=\"%s\">%s</a> (%d)</li>",
+			   $storyfiles[$i],
+			   $ch_titles[$i],
+			   $ch_wc[$i]);
     }
     print $ofh "\n</ol>\n</body></html>\n";
     close($ofh);

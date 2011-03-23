@@ -144,7 +144,10 @@ EOT
     $out .= "<p>$story\n";
     $out .= "</body>\n";
     $out .= "</html>\n";
-    return $out;
+    return (
+	html=>$out,
+	story=>$story,
+    );
 } # tidy
 
 =head2 parse_toc

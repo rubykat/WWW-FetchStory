@@ -179,7 +179,10 @@ sub tidy {
 </body>
 </html>
 EOT
-    return $out;
+    return (
+	html=>$out,
+	story=>$story,
+    );
 } # tidy
 
 =head2 get_toc
