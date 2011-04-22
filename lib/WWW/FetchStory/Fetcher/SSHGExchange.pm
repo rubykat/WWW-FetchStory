@@ -72,7 +72,7 @@ sub allow {
     my $self = shift;
     my $url = shift;
 
-    return ($url =~ /community\.livejournal\.com\/sshg_exchange/);
+    return ($url =~ /(community\.livejournal\.com\/sshg[-_]exchange|sshg[-_]exchange\.livejournal\.com)/);
 } # allow
 
 =head1 Private Methods
