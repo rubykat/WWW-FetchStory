@@ -37,8 +37,8 @@ The priority of this fetcher.  Fetchers with higher priority
 get tried first.  This is useful where there may be a generic
 fetcher for a particular site, and then a more specialized fetcher
 for particular sections of a site.  For example, there may be a
-generic SSHGExchange fetcher, and then refinements for particular
-SSHGExchange community, such as the sshg_exchange community.
+generic LiveJournal fetcher, and then refinements for particular
+LiveJournal community, such as the sshg_exchange community.
 This works as either a class function or a method.
 
 This must be overridden by the specific fetcher class.
@@ -134,7 +134,7 @@ sub parse_toc {
     $info{characters} = "Hermione Granger, Severus Snape";
     $info{universe} = 'Harry Potter';
 
-    while ($content =~ m/href="(http:\/\/sshg-mod\.livejournal\.com\/\d+.html)(#cutid\d)?">/sg)
+    while ($content =~ m/href=["'](http:\/\/sshg-mod\.livejournal\.com\/\d+.html)(#cutid\d)?["']>/sg)
     {
 	my $ch_url = $1;
 	warn "chapter=$ch_url\n" if $self->{verbose};
