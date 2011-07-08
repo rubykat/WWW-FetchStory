@@ -389,7 +389,11 @@ sub parse_ch_title {
 
     my $content = $args{content};
     my $title = '';
-    if ($content =~ m#<option[^>]+selected>([^<]+)</option>#s)
+    if ($content =~ m#^Chapter\s*(\d+:[^<]+)<br#m)
+    {
+	$title = $1;
+    }
+    elsif ($content =~ m#<option[^>]+selected>([^<]+)</option>#s)
     {
 	$title = $1;
     }
