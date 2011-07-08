@@ -131,6 +131,10 @@ sub extract_story {
     {
 	$story = $1;
     }
+    elsif ($content =~ m#id=storycontent class=storycontent>(.*?)\s*</div>\s*<div id=content>#s)
+    {
+	$story = $1;
+    }
     elsif ($content =~ m#<div id=storytext class=storytext>(.*?)</div>#s)
     {
 	$story = $1;
