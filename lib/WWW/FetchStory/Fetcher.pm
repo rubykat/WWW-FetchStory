@@ -172,8 +172,8 @@ sub fetch {
     my $toc_content = $self->get_toc($args{url});
     my %story_info = $self->parse_toc(content=>$toc_content,
 				      url=>$args{url});
-    my $now = time2str('%Y-%m-%d %H:%M', time);
-    $story_info{fetched} = $now;
+    my $today = time2str('%Y-%m-%d', time);
+    $story_info{fetched} = $today;
 
     warn Dump(\%story_info) if $self->{verbose};
 
