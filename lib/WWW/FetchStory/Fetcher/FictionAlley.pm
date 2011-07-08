@@ -93,16 +93,16 @@ sub allow {
 
 =head1 Private Methods
 
-=head2 tidy
+=head2 extract_story
 
-Remove the extraneous formatting from the fetched content.
+Extract the story-content from the fetched content.
 
-    $content = $self->tidy(content=>$content,
-			   title=>$title);
+    ($story, $title) = $self->extract_story(content=>$content,
+	title=>$title);
 
 =cut
 
-sub tidy {
+sub extract_story {
     my $self = shift;
     my %args = (
 	content=>'',
@@ -140,21 +140,11 @@ sub tidy {
     warn "title=$story_title\n" if $self->{verbose};
 
     my $out = <<EOT;
-<html>
-<head>
-<title>$story_title</title>
-</head>
-<body>
 <h1>$story_title</h1>
 $story
-</body>
-</html>
 EOT
-    return (
-	html=>$out,
-	story=>$story,
-    );
-} # tidy
+    return $out;
+} # extract_story
 
 =head2 parse_toc
 

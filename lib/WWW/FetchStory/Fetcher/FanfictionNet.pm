@@ -75,16 +75,16 @@ sub allow {
 
 =head1 Private Methods
 
-=head2 tidy
+=head2 extract_story
 
-Remove the extraneous formatting from the fetched content.
+Extract the story-content from the fetched content.
 
-    $content = $self->tidy(content=>$content,
-			   title=>$title);
+    my ($story, $title) = $self->extract_story(content=>$content,
+	title=>$title);
 
 =cut
 
-sub tidy {
+sub extract_story {
     my $self = shift;
     my %args = (
 	content=>'',
@@ -93,77 +93,45 @@ sub tidy {
     );
     my $content = $args{content};
 
-    my $category = '';
-    my $subcat = '';
     my $title = $args{title};
-    if ($content =~ m#<a href='/cat/\d+/'>([^<]+)</a>[\s\d;&\#]+<a href[^>]+>([^<]+)</a>[\s\d;&\#]+<b>([^<]+)</b>#s)
-    {
-	$category = $1;
-	$subcat = $2;
-	$title = $3;
-    }
-    elsif ($content =~ m!^<td><a href=[^>]+>([^<]+)</a>\s+&#187;\s+<a href=[^>]+>([^<]+)</a>\s+&#187;\s+<b>([^<]+)</b></td>!m)
-    {
-	$category = $1;
-	$subcat = $2;
-	$title = $3;
-    }
-    elsif ($content =~ m!"/book/Harry_Potter/">([^<]+)</a>.*?<b>([^<]+)</b>!s)
-    {
-	$category = $1;
-	$title = $2;
-    }
-    warn "category=$category\n" if $self->{verbose};
-    warn "subcat=$subcat\n" if $self->{verbose};
-    warn "title=$title\n" if $self->{verbose};
-
-    my $summary = '';
-    if ($content =~ m!var summary = '(.*?)';!m)
-    {
-	$summary = $1;
-    }
-
     my $author = '';
-    if ($content =~ m!Author: <a href[^>]+>([^<]+)</a>!s)
+
+    if ($content =~ m#<div\s+id=content><center><b>([^<]+)</b>\s*by\s*<a href='/u/\d+/'>([^<]+)</a>#)
     {
-	$author = $1;
-    }
-    elsif ($content =~ m!<a href='/u/\d+/[^>]+>([^<]+)</a>!s)
-    {
-	$author = $1;
-    }
-    elsif ($content =~ m!var author = '([^\']+)';!m)
-    {
-	$author = $1;
+	$title = $1;
+	$author = $2;
     }
     $author =~ s/^\s*//;
     $author =~ s/\s*$//;
+    warn "title=$title\n" if $self->{verbose};
     warn "author=$author\n" if $self->{verbose};
 
-    $content =~ m#- English - ([^-<]+) -#s;
-    my $p1 = $1;
-    $content =~ m#(Published:[^<]+)#s;
-    my $p2 = $1;
-    my $para = "$p1 $p2";
-    warn "para=$para\n" if $self->{verbose};
+    my $universe = $self->parse_universe(content=>$content);
+    warn "universe=$universe\n" if $self->{verbose};
+
+    my $category = '';
+    my $characters = '';
+    my $para = '';
+    if ($content =~ m!Rated:\s*\w+,\s*English,\s*([^,]+),\s*([^:,]+),\s*(P:[^<]+)<!)
+    {
+	$category = $1;
+	$characters = $2;
+	$para = $3;
+	$category =~ s!\s*\&\s!, !g;
+	$characters =~ s!\s*\&\s!, !g;
+    }
+    warn "category=$category\n" if $self->{verbose};
+    warn "characters=$characters\n" if $self->{verbose};
 
     my $chapter = $self->parse_ch_title(%args);
     warn "chapter=$chapter\n" if $self->{verbose};
 
     my $story = '';
-    if ($content =~ m#<div id=storytext class=storytext>(.*?)</div>#s)
+    if ($content =~ m#id=storycontent class=storycontent>(.*?)</div>#s)
     {
 	$story = $1;
     }
-    elsif ($content =~ m#</TD></form></TR></TABLE>\s*<div[^>]*>(.*?)</div>#is)
-    {
-	my $story_start = $1;
-	my @stuff = split('</div>', $story_start);
-	$story = shift @stuff;
-	$story =~ s/^\s*//;
-	$story =~ s#<SCRIPT.*</script>##is;
-    }
-    elsif ($content =~ m#<!-- start story -->(.*)<!-- end story -->#s)
+    elsif ($content =~ m#<div id=storytext class=storytext>(.*?)</div>#s)
     {
 	$story = $1;
     }
@@ -171,6 +139,10 @@ sub tidy {
     if ($story)
     {
 	$story = $self->tidy_chars($story);
+    }
+    else
+    {
+	die "Failed to extract story for $title";
     }
 
     my $story_title = "$title: $chapter";
@@ -180,27 +152,18 @@ sub tidy {
     my $out = '';
     if ($story)
     {
-	$out .= "<html>\n";
-	$out .= "<head>\n";
-	$out .= "<title>$story_title</title>\n";
-	$out .= "</head>\n";
-	$out .= "<body>\n";
 	$out .= "<h1>$story_title</h1>\n";
 	$out .= "<p>by $author</p>\n";
-	$out .= "<p>$category $subcat ";
-	$out .= "<br/>\n<b>Summary:</b> $summary<br/>\n" if $summary;
-	$out .= "$para</p>\n";
+	$out .= "<p>$category ";
+	$out .= "<br/>\n<b>Universe:</b> $universe\n" if $universe;
+	$out .= "<br/>\n<b>Characters:</b> $characters\n" if $characters;
+	$out .= "<br/>$para</p>\n" if $para;
 	$out .= "<div>\n";
 	$out .= "$story\n";
 	$out .= "</div>\n";
-	$out .= "</body>\n";
-	$out .= "</html>\n";
     }
-    return (
-	html=>$out,
-	story=>$story,
-    );
-} # tidy
+    return ($out, $story_title);
+} # extract_story
 
 =head2 parse_toc
 
@@ -289,7 +252,15 @@ sub parse_toc {
     {
 	$info{summary} = $self->parse_summary(%args);
     }
-    $info{characters} = '';
+
+    # get the mobile version of the page in order to parse the other stuff
+    my $mob_url = $args{url};
+    $mob_url =~ s/www/m/;
+    my $mob_page = $self->get_page($mob_url);
+    $info{characters} = $self->parse_characters(%args,content=>$mob_page);
+    $info{category} = $self->parse_category(%args,content=>$mob_page);
+    $info{universe} = $self->parse_universe(%args,content=>$mob_page);
+
     # fortunately fanfiction.net has a sane-ish chapter system
     # find the chapter from the chapter selection form
     if ($content =~ m#<SELECT title='chapter\snavigation'\sName=chapter(.*?)</select>#is)
@@ -299,6 +270,7 @@ sub parse_toc {
 	{
 	    my $num_ch = $1;
 	    my $fmt = $args{url};
+	    $fmt =~ s/www/m/;
 	    $fmt =~ s!/\d+/\d+/!/%d/\%d/!;
 	    for (my $i=1; $i <= $num_ch; $i++)
 	    {
@@ -315,13 +287,92 @@ sub parse_toc {
     }
     else # only one chapter
     {
-	@chapters = ($args{url});
+	@chapters = ($mob_url);
     }
 
     $info{chapters} = \@chapters;
 
     return %info;
 } # parse_toc
+
+=head2 parse_category
+
+Get the categories.
+
+=cut
+sub parse_category {
+    my $self = shift;
+    my %args = @_;
+
+    my $content = $args{content};
+
+    my $category = '';
+    my $characters = '';
+    if ($content =~ m!Rated:\s*\w+,\s*English,\s*([^,]+),\s*([^,]+),\s*(P:[^<]+)<!)
+    {
+	$category = $1;
+	$characters = $2;
+	$category =~ s!\s*\&\s!, !g;
+	$characters =~ s!\s*\&\s!, !g;
+	$characters =~ s!\.!!g;
+    }
+    else
+    {
+	$characters = $self->SUPER::parse_characters(%args);
+    }
+    return $category;
+} # parse_category
+
+=head2 parse_characters
+
+Get the characters.
+
+=cut
+sub parse_characters {
+    my $self = shift;
+    my %args = @_;
+
+    my $content = $args{content};
+
+    my $category = '';
+    my $characters = '';
+    if ($content =~ m!Rated:\s*\w+,\s*English,\s*([^,]+),\s*([^,]+),\s*(P:[^<]+)<!)
+    {
+	$category = $1;
+	$characters = $2;
+	$category =~ s!\s*\&\s!, !g;
+	$characters =~ s!\s*\&\s!, !g;
+	$characters =~ s!\.!!g;
+    }
+    else
+    {
+	$characters = $self->SUPER::parse_characters(%args);
+    }
+    return $characters;
+} # parse_characters
+
+=head2 parse_universe
+
+Get the universe.
+
+=cut
+sub parse_universe {
+    my $self = shift;
+    my %args = @_;
+
+    my $content = $args{content};
+
+    my $universe = '';
+    if ($content =~ m!&#187; <a href="/(?:anime|book|cartoon|comic|game|misc|movie|play|tv)/\w+/">([^<]+)</a>!)
+    {
+	$universe = $1;
+    }
+    else
+    {
+	$universe = $self->SUPER::parse_universe(%args);
+    }
+    return $universe;
+} # parse_universe
 
 =head2 parse_ch_title
 
@@ -352,6 +403,7 @@ sub parse_ch_title {
     }
     $title =~ s/<u>//ig;
     $title =~ s/<\/u>//ig;
+    $title =~ s/^Fanfic:\s*//;
     return $title;
 } # parse_ch_title
 

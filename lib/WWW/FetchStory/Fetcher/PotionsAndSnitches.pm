@@ -75,16 +75,16 @@ sub allow {
 
 =head1 Private Methods
 
-=head2 tidy
+=head2 extract_story
 
-Remove the extraneous formatting from the fetched content.
+Extract the story-content from the fetched content.
 
-    $content = $self->tidy(content=>$content,
-			   title=>$title);
+    my ($story, $title) = $self->extract_story(content=>$content,
+	title=>$title);
 
 =cut
 
-sub tidy {
+sub extract_story {
     my $self = shift;
     my %args = (
 	content=>'',
@@ -131,13 +131,27 @@ sub tidy {
     }
     else
     {
-	return $self->SUPER::tidy(%args);
+	return $self->SUPER::extract_story(%args);
     }
 
     my $out = '';
-    $out .= "<html>\n";
-    $out .= "<head>\n";
-    $out .= "<title>$title</title>\n";
+    $out .= $para if $para;
+    $out .= "$story\n";
+    return ($out, $title);
+} # extract_story
+
+=head2 make_css
+
+Create site-specific CSS styling.
+
+    $css = $self->make_css();
+
+=cut
+
+sub make_css {
+    my $self = shift;
+
+    my $out = '';
     $out .= <<EOT;
 <style type="text/css">
 hr {
@@ -192,17 +206,8 @@ hr {
 }
 </style>
 EOT
-    $out .= "</head>\n";
-    $out .= "<body>\n";
-    $out .= $para if $para;
-    $out .= "$story\n";
-    $out .= "</body>\n";
-    $out .= "</html>\n";
-    return (
-	html=>$out,
-	story=>$story,
-    );
-} # tidy
+    return $out;
+} # make_css
 
 =head2 parse_toc
 

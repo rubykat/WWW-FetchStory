@@ -7,7 +7,7 @@ fetch_story - fetch a story from the internet
 
 fetch_story [ --help | --manpage | --list ]
 
-fetch_story [ --basename I<string> ] [ --toc ] I<url>
+fetch_story [ --basename I<string> ] [ --toc ] [ --epub ] I<url>
 
 =head1 DESCRIPTION
 
@@ -31,6 +31,10 @@ given page, including the URLs of all the chapters of a multi-chapter story.
 
 This option uses the given string as the "base" name of the story file(s)
 instead of constructing the name from the title of the story.
+
+=item --epub
+
+Convert the story file(s) into EPUB format.
 
 =item --help
 
@@ -101,6 +105,7 @@ sub process_args ($) {
 	       'basename=s',
 	       'list',
 	       'toc',
+	       'epub',
 	       'manpage',
 	      ) or pod2usage(2);
 

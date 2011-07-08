@@ -75,16 +75,16 @@ sub allow {
 
 =head1 Private Methods
 
-=head2 tidy
+=head2 extract_story
 
-Remove the extraneous formatting from the fetched content.
+Extract the story-content from the fetched content.
 
-    $content = $self->tidy(content=>$content,
-			   title=>$title);
+    my ($story, $title) = $self->extract_story(content=>$content,
+	title=>$title);
 
 =cut
 
-sub tidy {
+sub extract_story {
     my $self = shift;
     my %args = (
 	content=>'',
@@ -122,20 +122,9 @@ sub tidy {
 	$story = $content;
     }
 
-    my $out = '';
-    $out .= "<html>\n";
-    $out .= "<head>\n";
-    $out .= "<title>$title</title>\n";
-    $out .= "</head>\n";
-    $out .= "<body>\n";
-    $out .= "$story\n";
-    $out .= "</body>\n";
-    $out .= "</html>\n";
-    return (
-	html=>$out,
-	story=>$story,
-    );
-} # tidy
+    return ($story, $title);
+} # extract_story
+
 =head2 parse_toc
 
 Parse the table-of-contents file.

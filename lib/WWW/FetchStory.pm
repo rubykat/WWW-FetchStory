@@ -26,6 +26,9 @@ so that all you get is the story text and its formatting.
 In order to tidy the HTML and parse the pages for data about the story,
 site-specific "Fetcher" plugins are required.
 
+These are in the namespace 'WWW::FetchStory::Fetcher'; a fetcher for the Foo site
+would be called 'WWW::FetchStory::Fetcher::Foo'.
+
 =cut
 
 use WWW::FetchStory::Fetcher;

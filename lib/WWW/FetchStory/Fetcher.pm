@@ -12,9 +12,12 @@ This is the base class for story-fetching plugins for WWW::FetchStory.
 =cut
 
 require File::Temp;
+use Date::Format;
 use Encode::ZapCP1252;
 use HTML::Entities;
 use HTML::Strip;
+use HTML::Tidy::libXML;
+use EBook::EPUB;
 use YAML::Any;
 
 =head1 METHODS
@@ -169,6 +172,8 @@ sub fetch {
     my $toc_content = $self->get_toc($args{url});
     my %story_info = $self->parse_toc(content=>$toc_content,
 				      url=>$args{url});
+    my $now = time2str('%Y-%m-%d %H:%M', time);
+    $story_info{fetched} = $now;
 
     warn Dump(\%story_info) if $self->{verbose};
 
@@ -200,11 +205,15 @@ sub fetch {
     $story_info{storyfiles} = \@storyfiles;
     $story_info{chapter_titles} = \@ch_titles;
     $story_info{chapter_wc} = \@ch_wc;
-    if ($args{toc}) # build a table-of-contents
+    if ($args{toc} and !$args{epub}) # build a table-of-contents
     {
 	my $toc = $self->build_toc(info=>\%story_info);
 	unshift @{$story_info{storyfiles}}, $toc;
 	unshift @{$story_info{chapter_titles}}, "Table of Contents";
+    }
+    if ($args{epub})
+    {
+	my $epub = $self->build_epub(info=>\%story_info);
     }
 
     return %story_info;
@@ -257,16 +266,16 @@ sub get_story_basename {
 
 } # get_story_basename
 
-=head2 tidy
+=head2 extract_story
 
-Remove the extraneous formatting from the fetched content.
+Extract the story-content from the fetched content.
 
-    $content = $self->tidy(content=>$content,
-			   title=>$title);
+    my ($story, $title) = $self->extract_story(content=>$content,
+	title=>$title);
 
 =cut
 
-sub tidy {
+sub extract_story {
     my $self = shift;
     my %args = (
 	content=>'',
@@ -303,19 +312,63 @@ sub tidy {
 	$story = $args{content};
     }
 
-    my $out = '';
-    $out .= "<html>\n";
-    $out .= "<head>\n";
-    $out .= "<title>$title</title>\n";
-    $out .= "</head>\n";
-    $out .= "<body>\n";
-    $out .= "$story\n";
-    $out .= "</body>\n";
-    $out .= "</html>\n";
-    return (
-	html=>$out,
-	story=>$story,
+    return ($story, $title);
+
+} # extract_story
+
+=head2 make_css
+
+Create site-specific CSS styling.
+
+    $css = $self->make_css();
+
+=cut
+
+sub make_css {
+    my $self = shift;
+
+    return '';
+} # make_css
+
+=head2 tidy
+
+Make a tidy, compliant XHTML page from the given story-content.
+
+    $content = $self->tidy(story=>$story,
+			   title=>$title);
+
+=cut
+
+sub tidy {
+    my $self = shift;
+    my %args = (
+	story=>'',
+	title=>'',
+	@_
     );
+
+    my $story = $args{story};
+    my $title = $args{title};
+    my $css = $self->make_css(%args);
+
+    my $html = '';
+    $html .= "<html>\n";
+    $html .= "<head>\n";
+    $html .= "<title>$title</title>\n";
+    $html .= $css if $css;
+    $html .= "</head>\n";
+    $html .= "<body>\n";
+    $html .= "$story\n";
+    $html .= "</body>\n";
+    $html .= "</html>\n";
+
+    my $tidy = HTML::Tidy::libXML->new();
+    my $xhtml = $tidy->clean($html, 'utf8', 1);
+
+    # fixing an error
+    $xhtml =~ s!xmlns="http://www.w3.org/1999/xhtml" xmlns="http://www.w3.org/1999/xhtml"!xmlns="http://www.w3.org/1999/xhtml"!;
+
+    return $xhtml;
 } # tidy
 
 =head2 get_toc
@@ -398,6 +451,7 @@ sub parse_toc {
     $info{author} = $self->parse_author(%args);
     $info{summary} = $self->parse_summary(%args);
     $info{characters} = $self->parse_characters(%args);
+    $info{universe} = $self->parse_universe(%args);
     $info{chapters} = \@chapters;
 
     return %info;
@@ -593,6 +647,28 @@ sub parse_characters {
     return $characters;
 } # parse_characters
 
+=head2 parse_universe
+
+Get the universe/fandom from the content
+
+=cut
+sub parse_universe {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+
+    my $content = $args{content};
+    my $universe = '';
+    if ($content =~ m#(?:Universe|Fandom):</(?:b|strong|u)>([^<]+)#is)
+    {
+	$universe = $1;
+    }
+    return $universe;
+} # parse_universe
+
 =head2 get_chapter
 
 Get an individual chapter of the story, tidy it,
@@ -616,13 +692,14 @@ sub get_chapter {
     );
 
     my $content = $self->get_page($args{url});
+    my ($story, $title) = $self->extract_story(%args, content=>$content);
 
     my $chapter_title = $self->parse_ch_title(content=>$content, url=>$args{url});
-    $chapter_title = $args{title} if !$chapter_title;
+    $chapter_title = $title if !$chapter_title;
 
-    my %tidied = $self->tidy(content=>$content, title=>$chapter_title);
+    my $html = $self->tidy(story=>$story, title=>$chapter_title);
 
-    my %wc = $self->wordcount(content=>$tidied{story});
+    my %wc = $self->wordcount(content=>$story);
 
     #
     # Write the file
@@ -632,7 +709,7 @@ sub get_chapter {
 	: sprintf("%s.html", $args{base}));
     my $ofh;
     open($ofh, ">",  $filename) || die "Can't write to $filename";
-    print $ofh $tidied{html};
+    print $ofh $html;
     close($ofh);
 
     return (
@@ -688,9 +765,8 @@ sub build_toc {
 
     my $filename = sprintf("%s00.html", $info->{basename});
 
-    my $ofh;
-    open($ofh, ">",  $filename) || die "Can't write to $filename";
-    print $ofh <<EOT;
+    my $html;
+    $html = <<EOT;
 <html>
 <head><title>$info->{title}</title></head>
 <body>
@@ -701,6 +777,7 @@ sub build_toc {
 $info->{summary}
 </p>
 <p><b>Words:</b> $info->{wordcount}<br/>
+<b>Universe:</b> $info->{universe}</p>
 <b>Characters:</b> $info->{characters}</p>
 <ol>
 EOT
@@ -710,16 +787,112 @@ EOT
     my @ch_wc = @{$info->{chapter_wc}};
     for (my $i=0; $i < @storyfiles; $i++)
     {
-	print $ofh sprintf("<li><a href=\"%s\">%s</a> (%d)</li>",
+	$html .= sprintf("<li><a href=\"%s\">%s</a> (%d)</li>",
 			   $storyfiles[$i],
 			   $ch_titles[$i],
 			   $ch_wc[$i]);
     }
-    print $ofh "\n</ol>\n</body></html>\n";
+    $html .= "\n</ol>\n</body></html>\n";
+    my $ofh;
+    open($ofh, ">",  $filename) || die "Can't write to $filename";
+    print $ofh $html;
     close($ofh);
 
     return $filename;
 } # build_toc
+
+=head2 build_epub
+
+Create an EPUB file from the story files and meta information.
+
+    $self->build_epub()
+
+=cut
+sub build_epub {
+    my $self = shift;
+    my %args = (
+	@_
+    );
+    my $info = $args{info};
+
+    my $epub = EBook::EPUB->new;
+    $epub->add_title($info->{title});
+    $epub->add_author($info->{author});
+    $epub->add_description($info->{summary});
+    $epub->add_language('en');
+    $epub->add_source($info->{url}, 'URL');
+    $epub->add_date($info->{fetched}, 'fetched');
+
+    my @subjects = ();
+    foreach my $key (keys %{$info})
+    {
+	if (!($key =~ /(?:title|author|summary|url|wordcount|basename)/)
+	    and !ref $info->{$key})
+	{
+	    my $label = $key . ': ';
+	    $label = '' if $key eq 'category';
+	    if ($info->{$key} =~ /, /)
+	    {
+		push @subjects, map { "${label}$_" } split(/, /, $info->{$key});
+	    }
+	    else
+	    {
+		push @subjects, $label . $info->{$key};
+	    }
+	}
+    }
+    foreach my $sub (@subjects)
+    {
+	$epub->add_subject($sub) if $sub;
+    }
+
+    my $info_str = "<h1>$info->{title}</h1>\n";
+    foreach my $key (sort keys %{$info})
+    {
+	next unless $info->{$key};
+	if (!($key =~ /(?:basename|title)/)
+	    and !ref $info->{$key})
+	{
+	    $info_str .= sprintf("<b>%s:</b> %s<br/>\n", $key, $info->{$key});
+	}
+    }
+
+    my $titlepage = $self->tidy(story=>$info_str, title=>$info->{title});
+    my $play_order = 1;
+    my $id;
+    $id = $epub->add_xhtml("title.html", $titlepage);
+
+    # Add top-level nav-point
+    my $navpoint = $epub->add_navpoint(
+            label       => "ToC",
+            id          => $id,
+            content     => "title.html",
+            play_order  => $play_order # should always start with 1
+    );
+
+    my @storyfiles = @{$info->{storyfiles}};
+    my @ch_titles = @{$info->{chapter_titles}};
+    for (my $i=0; $i < @storyfiles; $i++)
+    {
+	$play_order++;
+	$id = $epub->copy_xhtml($storyfiles[$i], $storyfiles[$i]);
+	my $navpoint = $epub->add_navpoint(
+            label       => $ch_titles[$i],
+            id          => $id,
+            content     => $storyfiles[$i],
+            play_order  => $play_order,
+	);
+    }
+
+    $epub->pack_zip($info->{basename} . '.epub');
+
+    # now unlink the storyfiles
+    for (my $i=0; $i < @storyfiles; $i++)
+    {
+	unlink $storyfiles[$i];
+    }
+
+} # build_epub
 
 =head2 tidy_chars
 
@@ -793,7 +966,7 @@ sub tidy_chars {
 
     $string =~ s/&#8208;/-/sg;    	# 0x2010 Hyphen
     $string =~ s/&#8209;/-/sg;    	# 0x2011 Non-breaking hyphen
-    $string =~ s/&#8211;/--/sg;   	# 0x2013 En dash
+    $string =~ s/&#8211;/-/sg;   	# 0x2013 En dash
     $string =~ s/&#8212;/--/sg;   	# 0x2014 Em dash
     $string =~ s/&#8213;/--/sg;   	# 0x2015 Horizontal bar/quotation dash
     $string =~ s/&#8214;/||/sg;   	# 0x2016 Double vertical line
@@ -806,16 +979,27 @@ sub tidy_chars {
     $string =~ s/&#8221;/"/sg;    	# 0x201D Right double quotation mark
     $string =~ s/&#8222;/,,/sg;    	# 0x201E Double low-9 quotation mark
     $string =~ s/&#8223;/"/sg;    	# 0x201F Double high-reversed-9 quotation mark
-    $string =~ s/&#8226;/&#183;/sg;  	# 0x2022 Bullet
-    $string =~ s/&#8227;/&#183;/sg;  	# 0x2023 Triangular bullet
-    $string =~ s/&#8228;/&#183;/sg;  	# 0x2024 One dot leader
+    $string =~ s/&#8226;/*/sg;  	# 0x2022 Bullet
+    $string =~ s/&#8227;/*/sg;  	# 0x2023 Triangular bullet
+    $string =~ s/&#8228;/./sg;  	# 0x2024 One dot leader
     $string =~ s/&#8229;/../sg;  	# 0x2026 Two dot leader
     $string =~ s/&#8230;/.../sg;  	# 0x2026 Horizontal ellipsis
     $string =~ s/&#8231;/&#183;/sg;  	# 0x2027 Hyphenation point
     #-------------------------------------------------------
 
+    # and somehow some of the entities go funny
+    $string =~ s/\&\#133;/.../g;
+    $string =~ s/\&nbsp;/ /g;
+    $string =~ s/\&lsquo;/'/g;
+    $string =~ s/\&rsquo;/'/g;
+    $string =~ s/\&ldquo;/"/g;
+    $string =~ s/\&rdquo;/"/g;
+    $string =~ s/\&ndash;/-/g;
+    $string =~ s/\&hellip;/.../g;
+
     # replace double-breaks with <p>
     $string =~ s#<br\s*\/?>\s*<br\s*\/?>#\n<p>#sg;
+
     return $string;
 } # tidy_chars
 
