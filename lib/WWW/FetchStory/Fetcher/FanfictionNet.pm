@@ -127,7 +127,7 @@ sub extract_story {
     warn "chapter=$chapter\n" if $self->{verbose};
 
     my $story = '';
-    if ($content =~ m#id=storycontent class=storycontent>(.*?)\s*</div>\s*<div id=content>#s)
+    if ($content =~ m#id=storycontent class=storycontent>(.*?)\s*</div>\s*</div>\s*<div id=content>#s)
     {
 	$story = $1;
     }
