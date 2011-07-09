@@ -890,7 +890,7 @@ sub build_epub {
     my @subjects = ();
     foreach my $key (keys %{$info})
     {
-	if (!($key =~ /(?:title|author|summary|url|wordcount|basename)/)
+	if (!($key =~ /(?:title|author|summary|url|fetched|wordcount|basename)/)
 	    and !ref $info->{$key})
 	{
 	    my $label;
