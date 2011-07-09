@@ -221,13 +221,100 @@ sub parse_toc {
     my $chapter1 = $self->get_page($ch1_url);
     $info{summary} = $self->parse_summary(%args,content=>$chapter1);
 
-    # the "Categories" here is which Doctor it is
-    my $doctor = '';
-    if ($chapter1 =~ m#<strong>Categories:</strong>\s*([^<]+)<br>#s)
+    # the "Categories" here is which Era it is, and we can get that from the Characters
+    # So let's look at the "Genres" instead.
+    if ($chapter1 =~ m#<strong>Genres:</strong>\s*([^<]+)<br>#s)
     {
-	$doctor = $1;
+	$info{category} = $1;
     }
-    $info{characters} = join(", ", ($doctor, $self->parse_characters(%args,content=>$chapter1)));
+
+    my $characters = $self->parse_characters(%args,content=>$chapter1);
+    # Rename the characters to match a different convention
+    # and filter out things like 'Other Characters'
+    # Do it in a hash because some characters get repeated in Multi-Era stories.
+    my @chars = split(/,\s*/, $characters);
+    my %char_hash = ();
+    foreach my $ch (@chars)
+    {
+	if ($ch =~ /The Doctor \((\d+\w+)\)/)
+	{
+	    my $numero = $1;
+	    if ($numero eq '1st')
+	    {
+		$char_hash{'First Doctor'} = 1;
+	    }
+	    elsif ($numero eq '2nd')
+	    {
+		$char_hash{'Second Doctor'} = 1;
+	    }
+	    elsif ($numero eq '3rd')
+	    {
+		$char_hash{'Third Doctor'} = 1;
+	    }
+	    elsif ($numero eq '4th')
+	    {
+		$char_hash{'Fourth Doctor'} = 1;
+	    }
+	    elsif ($numero eq '5th')
+	    {
+		$char_hash{'Fifth Doctor'} = 1;
+	    }
+	    elsif ($numero eq '6th')
+	    {
+		$char_hash{'Sixth Doctor'} = 1;
+	    }
+	    elsif ($numero eq '7th')
+	    {
+		$char_hash{'Seventh Doctor'} = 1;
+	    }
+	    elsif ($numero eq '8th')
+	    {
+		$char_hash{'Eighth Doctor'} = 1;
+	    }
+	    elsif ($numero eq '9th')
+	    {
+		$char_hash{'Ninth Doctor'} = 1;
+	    }
+	    elsif ($numero eq '10th')
+	    {
+		$char_hash{'Tenth Doctor'} = 1;
+	    }
+	    elsif ($numero eq '11th')
+	    {
+		$char_hash{'Eleventh Doctor'} = 1;
+	    }
+	}
+	elsif ($ch =~ /The (Master|Doctor)\s*\((.*)\)/i)
+	{
+	    my $who = $1;
+	    my $when = $2;
+	    if ($when =~ /(:?other|unspecified|author.created)/i)
+	    {
+		$char_hash{$who} = 1;
+	    }
+	    else
+	    {
+		$char_hash{"$when $who"} = 1;
+	    }
+	}
+	elsif ($ch =~ /Romana.*author created/i)
+	{
+	    $char_hash{'Romana'} = 1;
+	}
+	elsif ($ch =~ /(?:Other Character|Original Companion|Unspecified Companion)/i)
+	{
+	    # skip
+	}
+	elsif ($ch =~ /^The\s(.*)/)
+	{
+	    $char_hash{$1} = 1;
+	}
+	else
+	{
+	    $char_hash{$ch} = 1;
+	}
+    }
+    $info{characters} = join(', ', sort keys %char_hash);
     $info{universe} = 'Doctor Who';
 
     # fortunately Teaspoon has a sane chapter system
