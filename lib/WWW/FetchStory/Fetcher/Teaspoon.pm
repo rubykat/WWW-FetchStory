@@ -301,7 +301,7 @@ sub parse_toc {
 	{
 	    $char_hash{'Romana'} = 1;
 	}
-	elsif ($ch =~ /(?:Other Character|Original Companion|Unspecified Companion)/i)
+	elsif ($ch =~ /(?:Other Character|Original Companion|Unspecified Companion|None)/i)
 	{
 	    # skip
 	}
@@ -314,7 +314,10 @@ sub parse_toc {
 	    $char_hash{$ch} = 1;
 	}
     }
-    $info{characters} = join(', ', sort keys %char_hash);
+    if (%char_hash)
+    {
+	$info{characters} = join(', ', sort keys %char_hash);
+    }
     $info{universe} = 'Doctor Who';
 
     # fortunately Teaspoon has a sane chapter system
