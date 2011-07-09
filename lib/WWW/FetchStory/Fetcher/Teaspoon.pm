@@ -208,7 +208,7 @@ sub parse_toc {
     if ($content =~ m#<b>([^<]+)</b> by <a href="viewuser.php\?uid=\d+">([^<]+)</a>#s)
     {
 	$info{title} = $1;
-	$info{author} = $1;
+	$info{author} = $2;
     }
     else
     {
