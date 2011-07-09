@@ -172,9 +172,6 @@ sub fetch {
     my $toc_content = $self->get_toc($args{url});
     my %story_info = $self->parse_toc(content=>$toc_content,
 	url=>$args{url});
-    $self->derive_values(info=>\%story_info);
-
-    warn Dump(\%story_info) if $self->{verbose};
 
     my @ch_urls = @{$story_info{chapters}};
     my $one_chapter = (@ch_urls == 1);
@@ -200,6 +197,9 @@ sub fetch {
 	$story_info{wordcount} += $ch_info{wordcount};
 	$count++;
     }
+    $self->derive_values(info=>\%story_info);
+
+    warn Dump(\%story_info) if $self->{verbose};
 
     $story_info{storyfiles} = \@storyfiles;
     $story_info{chapter_titles} = \@ch_titles;
@@ -704,9 +704,9 @@ sub derive_values {
     $args{info}->{fetched} = $today;
 
     my $words = $args{info}->{wordcount};
-    my $len = '';
     if ($words)
     {
+	my $len = '';
 	if ($words == 100)
 	{
 	    $len = 'Drabble';
@@ -729,7 +729,7 @@ sub derive_values {
 	{
 	    $len = 'Vignette';
 	}
-	$args{info}->{storylength} = $len if $len;
+	$args{info}->{story_length} = $len if $len;
     }
 } # derive_values
 
@@ -894,7 +894,7 @@ sub build_epub {
 	    and !ref $info->{$key})
 	{
 	    my $label;
-	    if ($key =~ /^(?:category|storylength)$/)
+	    if ($key =~ /^(?:category|story_length)$/)
 	    {
 		$label = '';
 	    }
