@@ -924,11 +924,46 @@ sub build_epub {
     $epub->add_source($info->{url}, 'URL');
     $epub->add_date($info->{fetched}, 'fetched');
 
+    # characters, universes
+    foreach my $key (qw(characters universe))
+    {
+	if (exists $info->{$key})
+	{
+	    if ($info->{$key} =~ /,\s*/)
+	    {
+		my @array = split(/,\s*/, $info->{$key});
+		foreach my $v (@array)
+		{
+		    $epub->add_meta_item($key, $v);
+		}
+	    }
+	    elsif (ref $info->{$key})
+	    {
+		foreach my $v (@{$info->{$key}})
+		{
+		    $epub->add_meta_item($key, $v);
+		}
+	    }
+	    else
+	    {
+		$epub->add_meta_item($key, $info->{$key});
+	    }
+	}
+    }
+
     my @subjects = ();
     foreach my $key (keys %{$info})
     {
-	if (!($key =~ /(?:title|author|summary|url|fetched|wordcount|basename)/)
-	    and !ref $info->{$key})
+	if (!($key eq 'title'
+		    or $key eq 'author'
+		    or $key eq 'summary'
+		    or $key eq 'url'
+		    or $key eq 'fetched'
+		    or $key eq 'wordcount'
+		    or $key eq 'basename'
+		    or $key eq 'characters'
+		    or $key eq 'universe'
+	    ) and !ref $info->{$key})
 	{
 	    my $label;
 	    if ($key =~ /^(?:category|story_length)$/)
