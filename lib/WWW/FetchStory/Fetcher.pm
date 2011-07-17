@@ -927,7 +927,7 @@ sub build_epub {
     # characters, universes
     foreach my $key (qw(characters universe))
     {
-	if (exists $info->{$key})
+	if (exists $info->{$key} and $info->{$key})
 	{
 	    if ($info->{$key} =~ /,\s*/)
 	    {
