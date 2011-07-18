@@ -949,10 +949,12 @@ EOT
     delete $know{author};
     delete $know{summary};
     delete $know{url};
+    delete $know{fetched};
     delete $know{basename};
     delete $know{chapter_titles};
     delete $know{chapter_wc};
     delete $know{chapters};
+    delete $know{storyfiles};
     foreach my $key (sort keys %know)
     {
 	if (!$know{$key})
