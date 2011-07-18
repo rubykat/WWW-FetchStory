@@ -950,8 +950,15 @@ EOT
     delete $know{summary};
     delete $know{url};
     delete $know{basename};
+    delete $know{chapter_titles};
+    delete $know{chapter_wc};
+    delete $know{chapters};
     foreach my $key (sort keys %know)
     {
+	if (!$know{$key})
+	{
+	    next;
+	}
 	if (!ref $know{$key})
 	{
 	    $info_str .= sprintf("<b>%s:</b> %s<br/>\n", $key, $know{$key});
