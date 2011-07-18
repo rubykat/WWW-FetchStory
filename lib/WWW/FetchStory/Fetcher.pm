@@ -935,81 +935,71 @@ sub build_epub {
     $epub->add_source($info->{url}, 'URL');
     $epub->add_date($info->{fetched}, 'fetched');
 
-    # characters, universes
-    foreach my $key (qw(characters universe))
+    # Add Subjects and additional Meta
+    # Also build up the title-page
+    my $info_str =<<EOT;
+<h1>$info->{title}</h1>
+<p>by $info->{author}</p>
+<p><b>Fetched from:</b> $info->{url}</p>
+<p><b>Summary:</b> $info->{summary}</p>
+<p>
+EOT
+    my %know = %{$info};
+    delete $know{title};
+    delete $know{author};
+    delete $know{summary};
+    delete $know{url};
+    delete $know{basename};
+    foreach my $key (sort keys %know)
     {
-	if (exists $info->{$key} and $info->{$key})
+	if (!ref $know{$key})
 	{
-	    if ($info->{$key} =~ /,\s*/)
+	    $info_str .= sprintf("<b>%s:</b> %s<br/>\n", $key, $know{$key});
+	    if ($know{$key} =~ /,\s*/)
 	    {
-		my @array = split(/,\s*/, $info->{$key});
+		my @array = split(/,\s*/, $know{$key});
 		foreach my $v (@array)
 		{
-		    $epub->add_meta_item($key, $v);
+		    if ($key =~ /^(?:category|story_length)$/)
+		    {
+			$epub->add_subject($v);
+		    }
+		    else
+		    {
+			$epub->add_meta_item($key, $v);
+		    }
 		}
 	    }
-	    elsif (ref $info->{$key})
+	    else
 	    {
-		foreach my $v (@{$info->{$key}})
+		if ($key =~ /^(?:category|story_length)$/)
 		{
-		    $epub->add_meta_item($key, $v);
+		    $epub->add_subject($know{$key});
+		}
+		else
+		{
+		    $epub->add_meta_item($key, $know{$key});
 		}
 	    }
-	    else
+	}
+	else
+	{
+	    $info_str .= sprintf("<b>%s:</b> %s<br/>\n", $key, join(', ', @{$know{$key}}));
+	    foreach my $cat (@{$know{$key}})
 	    {
-		$epub->add_meta_item($key, $info->{$key});
+		if ($key =~ /^(?:category|story_length)$/)
+		{
+		    $epub->add_subject($cat);
+		}
+		else
+		{
+		    $epub->add_meta_item($key, $cat);
+		}
 	    }
 	}
     }
 
-    my @subjects = ();
-    foreach my $key (keys %{$info})
-    {
-	if (!($key eq 'title'
-		    or $key eq 'author'
-		    or $key eq 'summary'
-		    or $key eq 'url'
-		    or $key eq 'fetched'
-		    or $key eq 'wordcount'
-		    or $key eq 'basename'
-		    or $key eq 'characters'
-		    or $key eq 'universe'
-	    ) and !ref $info->{$key})
-	{
-	    my $label;
-	    if ($key =~ /^(?:category|story_length)$/)
-	    {
-		$label = '';
-	    }
-	    else
-	    {
-		$label = $key . ': ';
-	    }
-	    if ($info->{$key} =~ /, /)
-	    {
-		push @subjects, map { "${label}$_" } split(/, /, $info->{$key});
-	    }
-	    else
-	    {
-		push @subjects, $label . $info->{$key};
-	    }
-	}
-    }
-    foreach my $sub (@subjects)
-    {
-	$epub->add_subject($sub) if $sub;
-    }
-
-    my $info_str = "<h1>$info->{title}</h1>\n";
-    foreach my $key (sort keys %{$info})
-    {
-	next unless $info->{$key};
-	if (!($key =~ /(?:basename|title)/)
-	    and !ref $info->{$key})
-	{
-	    $info_str .= sprintf("<b>%s:</b> %s<br/>\n", $key, $info->{$key});
-	}
-    }
+    $info_str .= "</p>\n";
 
     my $titlepage = $self->tidy(story=>$info_str, title=>$info->{title});
     my $play_order = 1;
