@@ -260,7 +260,7 @@ sub get_story_basename {
 	    if ($words[$i] =~ /^(the|a|an|and)$/)
 	    {
 	    }
-	    elsif (@words > 4 and $words[$i] =~ /^(of|to|in|or|on|by)$/)
+	    elsif (@words > 4 and $words[$i] =~ /^(of|to|in|or|on|by|i)$/)
 	    {
 		# if there are a lot of words, skip these little words too
 	    }
