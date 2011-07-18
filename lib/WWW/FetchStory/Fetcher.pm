@@ -357,6 +357,7 @@ sub tidy {
     );
 
     my $story = $args{story};
+    $story = $self->tidy_chars($story);
     my $title = $args{title};
     my $css = $self->make_css(%args);
 
