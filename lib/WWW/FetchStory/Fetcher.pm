@@ -252,8 +252,8 @@ sub get_story_basename {
     }
     else
     {
-	$max_words++ if (@words > 4); # four
-	$max_words++ if (@words > 6); # five if a lot
+	$max_words++ if (@words > 3); # four
+	$max_words++ if (@words > 5); # five if a lot
 	for (my $i = 0; $i < @words and @first_words < $max_words; $i++)
 	{
 	    # skip little words
