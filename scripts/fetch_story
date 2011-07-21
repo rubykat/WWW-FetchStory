@@ -7,7 +7,7 @@ fetch_story - fetch a story from the internet
 
 fetch_story [ --help | --manpage | --list ]
 
-fetch_story [ --basename I<string> ] [ --toc ] [ --epub ] I<url>
+fetch_story [ --basename I<string> ] [ --toc | --epub ] [ --yaml ] I<url>
 
 =head1 DESCRIPTION
 
@@ -55,6 +55,10 @@ Build a table-of-contents file for the story.
 =item --verbose
 
 Be verbose.
+
+=item --yaml
+
+Put the meta-data into a YAML file.
 
 =back
 
@@ -104,8 +108,9 @@ sub process_args ($) {
 	       'debug!',
 	       'basename=s',
 	       'list',
-	       'toc',
-	       'epub',
+	       'toc!',
+	       'epub!',
+	       'yaml!',
 	       'manpage',
 	      ) or pod2usage(2);
 

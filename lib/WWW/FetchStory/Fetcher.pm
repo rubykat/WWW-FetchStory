@@ -136,7 +136,8 @@ Fetch the story, with the given options.
     %story_info = $obj->fetch(
 	url=>$url,
 	basename=>$basename,
-	toc=>0);
+	toc=>0,
+	yaml=>0);
 
 =over
 
@@ -148,6 +149,10 @@ If this is not given, the basename is derived from the title of the story.
 =item toc
 
 Build a table-of-contents file if this is true.
+
+=item yaml
+
+Build a YAML file with meta-data about this story if this is true.
 
 =item url
 
@@ -213,6 +218,14 @@ sub fetch {
     if ($args{epub})
     {
 	my $epub = $self->build_epub(info=>\%story_info);
+    }
+    if ($args{yaml})
+    {
+	my $filename = sprintf("%s.yml", $story_info{basename});
+	my $ofh;
+	open($ofh, ">",  $filename) || die "Can't write to $filename";
+	print $ofh Dump(\%story_info);
+	close($ofh);
     }
 
     return %story_info;
