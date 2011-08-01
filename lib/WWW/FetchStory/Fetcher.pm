@@ -201,6 +201,7 @@ sub fetch {
 	push @ch_wc, $ch_info{wordcount};
 	$story_info{wordcount} += $ch_info{wordcount};
 	$count++;
+	sleep 1; # try not to overload the archive
     }
     $self->derive_values(info=>\%story_info);
 
