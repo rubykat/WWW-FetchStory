@@ -217,7 +217,10 @@ sub fetch {
     }
     if ($args{epub})
     {
-	my $epub = $self->build_epub(info=>\%story_info);
+	my $epub_file = $self->build_epub(info=>\%story_info);
+	# if we have built an EPUB file, then the storyfiles
+	# are now just one EPUB file.
+	$story_info{storyfiles} = [$epub_file];
     }
     if ($args{yaml})
     {
@@ -1050,7 +1053,8 @@ EOT
 	);
     }
 
-    $epub->pack_zip($info->{basename} . '.epub');
+    my $epub_file = $info->{basename} . '.epub';
+    $epub->pack_zip($epub_file);
 
     # now unlink the storyfiles
     for (my $i=0; $i < @storyfiles; $i++)
@@ -1058,6 +1062,7 @@ EOT
 	unlink $storyfiles[$i];
     }
 
+    return $epub_file;
 } # build_epub
 
 =head2 tidy_chars
