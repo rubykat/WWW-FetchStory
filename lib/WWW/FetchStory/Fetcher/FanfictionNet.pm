@@ -119,6 +119,18 @@ sub extract_story {
 	$para = $3;
 	$category =~ s!\s*\&\s!, !g;
 	$characters =~ s!\s*\&\s!, !g;
+
+	# Correct some character names
+	$characters =~ s/Hermione G/Hermione Granger/;
+	$characters =~ s/Severus S/Severus Snape/;
+	$characters =~ s/Harry P/Harry Potter/;
+	$characters =~ s/Draco M/Draco Malfoy/;
+	$characters =~ s/Remus L/Remus Lupin/;
+	$characters =~ s/Sirius B/Sirius Black/;
+	$characters =~ s/Alastor M/Alastor Moody/;
+	$characters =~ s/Ginny W/Ginny Weasley/;
+	$characters =~ s/Fred W/Fred Weasley/;
+	$characters =~ s/George W/George Weasley/;
     }
     warn "category=$category\n" if $self->{verbose};
     warn "characters=$characters\n" if $self->{verbose};
