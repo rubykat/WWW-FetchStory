@@ -623,6 +623,11 @@ sub parse_summary {
     {
 	$summary = $1;
     }
+    elsif ($content =~ m#<tr><(?:th|td)>Summary</(?:th|td)><td>(.*?)</td></tr>#s)
+    {
+	$summary = $1;
+	$summary =~ s/<br>/ /g;
+    }
     elsif ($content =~ /\bSummary:\s*"?(.*?)"?\s*<(?:br|p|\/p|div|\/div)/si)
     {
 	$summary = $1;
@@ -673,6 +678,11 @@ sub parse_characters {
     {
 	$characters = $1;
     }
+    elsif ($content =~ m#<tr><(?:th|td)>(?:Pairings|Characters)</(?:th|td)><td>(.*?)</td></tr>#s)
+    {
+	$characters = $1;
+	$characters =~ s/<br>/, /g;
+    }
     return $characters;
 } # parse_characters
 
@@ -716,6 +726,11 @@ sub parse_category {
     if ($content =~ m#(?:Category|Tags):</(?:b|strong|u)>([^<]+)#is)
     {
 	$category = $1;
+    }
+    elsif ($content =~ m#<tr><(?:th|td)>Categories</(?:th|td)><td>(.*?)</td></tr>#s)
+    {
+	$category = $1;
+	$category =~ s/<br>/, /g;
     }
     return $category;
 } # parse_category
