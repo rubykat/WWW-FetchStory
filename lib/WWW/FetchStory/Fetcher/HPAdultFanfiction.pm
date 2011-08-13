@@ -145,8 +145,28 @@ sub parse_toc {
     $info{author} = $self->parse_author(%args);
     $info{summary} = $self->parse_summary(%args);
     $info{characters} = $self->parse_characters(%args);
+    $info{category} = $self->parse_category(%args);
     $info{universe} = 'Harry Potter';
     $info{rating} = 'Adult';
+
+    # the summary is on the Author page!
+    my $auth_id = '';
+    if ($content =~ m/Author:\s*<a href='authors\.php\?no=(\d+)'>/s)
+    {
+	$auth_id = $1;
+    }
+    if ($auth_id and $sid)
+    {
+	my $auth_page = $self->get_page("http://hp.adultfanfiction.net/authors.php?no=${auth_id}");
+	if ($auth_page =~ m#<a href='story\.php\?no=${sid}'>[^<]+</a><br>\s*([^<]+)<br>#s)
+	{
+	    $info{summary} = $1;
+	}
+    }
+    if (!$info{summary})
+    {
+	$info{summary} = $self->SUPER::parse_summary(%args);
+    }
 
     my $fmt = 'http://hp.adultfanfiction.net/story.php?no=%d&chapter=%d';
     my $max_chapter = 0;
@@ -194,6 +214,7 @@ sub parse_title {
     {
 	$title = $self->SUPER::parse_title(%args);
     }
+    $title =~ s/\s+$//;
     return $title;
 } # parse_title
 
@@ -221,6 +242,55 @@ sub parse_author {
 	$author = $self->SUPER::parse_author(%args);
     }
     return $author;
+} # parse_author
+
+=head2 parse_characters
+
+Get the characters from the content
+
+=cut
+sub parse_characters {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+
+    my $content = $args{content};
+    my $characters = '';
+    if ($content =~ m#<a href="main\.php\?list=\d+">\s*(\w+)/(\w+)</a>#)
+    {
+	$characters = $1 . ', ' . $2;
+	$characters =~ s/Arthur/Arthur Weasley/;
+	$characters =~ s/Bill/Bill Weasley/;
+	$characters =~ s/Charlie/Charlie Weasley/;
+	$characters =~ s/Draco/Draco Malfoy/;
+	$characters =~ s/Dudley/Dudley Dursley/;
+	$characters =~ s/Fred/Fred Weasley/;
+	$characters =~ s/George/George Weasley/;
+	$characters =~ s/Ginny/Ginny Weasley/;
+	$characters =~ s/Harry/Harry Potter/;
+	$characters =~ s/Hermione/Hermione Granger/;
+	$characters =~ s/James/James Potter/;
+	$characters =~ s/Lavender/Lavender Brown/;
+	$characters =~ s/Lavendar/Lavender Brown/;
+	$characters =~ s/Lily/Lily Evans/;
+	$characters =~ s/Lucius/Lucius Malfoy/;
+	$characters =~ s/Luna/Luna Lovegood/;
+	$characters =~ s/McGonagall/Minerva McGonagall/;
+	$characters =~ s/Molly/Molly Weasley/;
+	$characters =~ s/Narcissa/Narcissa Malfoy/;
+	$characters =~ s/Neville/Neville Longbottom/;
+	$characters =~ s/Remus/Remus Lupin/;
+	$characters =~ s/Ron/Ron Weasley/;
+	$characters =~ s/Snape/Severus Snape/;
+    }
+    else
+    {
+	$characters = $self->SUPER::parse_characters(%args);
+    }
+    return $characters;
 } # parse_author
 
 1; # End of WWW::FetchStory::Fetcher::HPAdultFanfiction
