@@ -93,6 +93,61 @@ sub allow {
 
 =head1 Private Methods
 
+=head2 extract_story
+
+Extract the story-content from the fetched content.
+
+    my ($story, $title) = $self->extract_story(content=>$content,
+	title=>$title);
+
+=cut
+
+sub extract_story {
+    my $self = shift;
+    my %args = (
+	content=>'',
+	title=>'',
+	@_
+    );
+    my $content = $args{content};
+
+    my $title = $args{title};
+
+    my $chapter = $self->parse_ch_title(%args);
+    warn "chapter=$chapter\n" if $self->{verbose};
+
+    my $author = $self->parse_author(%args);
+    warn "author=$author\n" if $self->{verbose};
+
+    my $story = '';
+    if ($content =~ m!<td colspan="3" bgcolor="F4EBCC">\s*<font color="#003333">Disclaimer:[^<]+</font>\s*</td>\s*</tr>\s*<tr>\s*<td colspan="3">\s*<p>&nbsp;</p>\s*</td>\s*</tr>\s*<tr>\s*<td colspan="3" bgcolor="F4EBCC">\s*(.*?)<tr class='catdis'>!s)
+    {
+	$story = $1;
+    }
+
+    if ($story)
+    {
+	$story = $self->tidy_chars($story);
+    }
+    else
+    {
+	die "Failed to extract story for $title";
+    }
+
+    my $story_title = "$title: $chapter";
+    $story_title = $title if ($title eq $chapter);
+    $story_title = $title if ($chapter eq '');
+
+    my $out = '';
+    if ($story)
+    {
+	$out .= "<h1>$story_title</h1>\n";
+	$out .= "<p>by $author</p>\n";
+	$out .= "$story";
+    }
+    return ($out, $story_title);
+} # extract_story
+
 =head2 parse_toc
 
 Parse the table-of-contents file.
@@ -186,7 +241,6 @@ sub parse_toc {
     }
 
     $info{chapters} = \@chapters;
-    warn "This interface is incomplete.\n";
 
     return %info;
 } # parse_toc
@@ -291,7 +345,37 @@ sub parse_characters {
 	$characters = $self->SUPER::parse_characters(%args);
     }
     return $characters;
-} # parse_author
+} # parse_characters
+
+=head2 parse_ch_title
+
+Get the chapter title from the content
+
+=cut
+sub parse_ch_title {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+
+    my $content = $args{content};
+    my $title = '';
+    if ($content =~ m#^Chapter\s*(\d+:[^<]+)<br#m)
+    {
+	$title = $1;
+    }
+    elsif ($content =~ m#<option[^>]+selected>([^<]+)</option>#s)
+    {
+	$title = $1;
+    }
+    else
+    {
+	$title = $self->parse_title(%args);
+    }
+    return $title;
+} # parse_ch_title
 
 1; # End of WWW::FetchStory::Fetcher::HPAdultFanfiction
 __END__
