@@ -146,6 +146,7 @@ sub parse_toc {
     $info{summary} = $self->parse_summary(%args);
     $info{characters} = $self->parse_characters(%args);
     $info{universe} = 'Harry Potter';
+    $info{rating} = 'Adult';
 
     my $fmt = 'http://hp.adultfanfiction.net/story.php?no=%d&chapter=%d';
     my $max_chapter = 0;
