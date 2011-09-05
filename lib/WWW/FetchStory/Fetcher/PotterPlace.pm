@@ -112,7 +112,6 @@ sub parse_toc {
     my %info = ();
     my $content = $args{content};
 
-    my @chapters = ();
     $info{url} = $args{url};
     my $sid='';
     if ($args{url} =~ m#sid=(\d+)#)
@@ -128,7 +127,26 @@ sub parse_toc {
     $info{summary} = $self->parse_summary(%args);
     $info{characters} = $self->parse_characters(%args);
     $info{universe} = 'Harry Potter';
+    $info{chapters} = $self->parse_chapter_urls(%args, sid=>$sid);
 
+    return %info;
+} # parse_toc
+
+=head2 parse_chapter_urls
+
+Figure out the URLs for the chapters of this story.
+
+=cut
+sub parse_chapter_urls {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+    my $content = $args{content};
+    my $sid = $args{sid};
+    my @chapters = ();
     # fortunately Potter Place has a sane chapter system
     my $fmt = 'http://www.potterplacearchives.com/viewstory.php?action=printable&textsize=0&sid=%d&chapter=%d';
     if ($content =~ m#<span class="label">Chapters:\s*</span>\s*(\d+)#s)
@@ -142,10 +160,8 @@ sub parse_toc {
 	}
     }
 
-    $info{chapters} = \@chapters;
-
-    return %info;
-} # parse_toc
+    return \@chapters;
+} # parse_chapter_urls
 
 =head2 parse_title
 

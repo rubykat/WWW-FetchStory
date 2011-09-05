@@ -222,7 +222,26 @@ sub parse_toc {
     {
 	$info{summary} = $self->SUPER::parse_summary(%args);
     }
+    $info{chapters} = $self->parse_chapter_urls(%args, sid=>$sid);
 
+    return %info;
+} # parse_toc
+
+=head2 parse_chapter_urls
+
+Figure out the URLs for the chapters of this story.
+
+=cut
+sub parse_chapter_urls {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+    my $content = $args{content};
+    my $sid = $args{sid};
+    my @chapters = ();
     my $fmt = 'http://hp.adultfanfiction.net/story.php?no=%d&chapter=%d';
     my $max_chapter = 0;
     while ($content =~ m#<option value='story\.php\?no=${sid}&chapter=(\d+)'#gs)
@@ -240,10 +259,8 @@ sub parse_toc {
 	push @chapters, $ch_url;
     }
 
-    $info{chapters} = \@chapters;
-
-    return %info;
-} # parse_toc
+    return \@chapters;
+} # parse_chapter_urls
 
 =head2 parse_title
 

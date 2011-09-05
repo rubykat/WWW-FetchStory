@@ -262,7 +262,26 @@ sub parse_toc {
     $info{summary} = $self->parse_summary(%args);
     $info{characters} = $self->parse_characters(%args);
     $info{universe} = 'Harry Potter';
+    $info{chapters} = $self->parse_chapter_urls(%args, sid=>$sid);
 
+    return %info;
+} # parse_toc
+
+=head2 parse_chapter_urls
+
+Figure out the URLs for the chapters of this story.
+
+=cut
+sub parse_chapter_urls {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+    my $content = $args{content};
+    my $sid = $args{sid};
+    my @chapters = ();
     # fortunately Potions-And-Snitches has a sane chapter system
     if ($content =~ m#<span class="label">Chapters:\s*</span>\s*(\d+)#s)
     {
@@ -276,10 +295,8 @@ sub parse_toc {
 	}
     }
 
-    $info{chapters} = \@chapters;
-
-    return %info;
-} # parse_toc
+    return \@chapters;
+} # parse_chapter_urls
 
 =head2 parse_title
 

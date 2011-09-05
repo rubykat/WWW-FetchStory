@@ -337,8 +337,6 @@ sub parse_toc {
 
     my %info = ();
     $info{url} = $args{url};
-
-    my @chapters = ("$args{url}?format=light");
     $info{toc_first} = 1;
 
     my $title = $self->parse_title(%args);
@@ -360,11 +358,31 @@ sub parse_toc {
     $info{characters} = $characters;
 
     $info{universe} = $self->parse_universe(%args);
+    $info{chapters} = $self->parse_chapter_urls(%args, user=>$user,
+	is_community=>$is_community);
 
+    return %info;
+} # parse_toc
+
+=head2 parse_chapter_urls
+
+Figure out the URLs for the chapters of this story.
+
+=cut
+sub parse_chapter_urls {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+    my $content = $args{content};
+    my $user = $args{user};
+    my @chapters = ("$args{url}?format=light");
     if ($user)
     {
 	warn "user=$user\n" if $self->{verbose};
-	if ($is_community)
+	if ($args{is_community})
 	{
 	    while ($content =~ m/href="(http:\/\/community\.livejournal\.com\/${user}\/\d+.html)(#cutid\d)?">/sg)
 	    {
@@ -389,10 +407,9 @@ sub parse_toc {
 	    }
 	}
     }
-    $info{chapters} = \@chapters;
 
-    return %info;
-} # parse_toc
+    return \@chapters;
+} # parse_chapter_urls
 
 1; # End of WWW::FetchStory::Fetcher::LiveJournal
 __END__

@@ -1,13 +1,13 @@
-package WWW::FetchStory::Fetcher::DreamWidth;
+package WWW::FetchStory::Fetcher::Dreamwidth;
 use strict;
 use warnings;
 =head1 NAME
 
-WWW::FetchStory::Fetcher::DreamWidth - fetching module for WWW::FetchStory
+WWW::FetchStory::Fetcher::Dreamwidth - fetching module for WWW::FetchStory
 
 =head1 DESCRIPTION
 
-This is the DreamWidth story-fetching plugin for WWW::FetchStory.
+This is the Dreamwidth story-fetching plugin for WWW::FetchStory.
 
 =cut
 
@@ -37,8 +37,8 @@ The priority of this fetcher.  Fetchers with higher priority
 get tried first.  This is useful where there may be a generic
 fetcher for a particular site, and then a more specialized fetcher
 for particular sections of a site.  For example, there may be a
-generic DreamWidth fetcher, and then refinements for particular
-DreamWidth community, such as the sshg_exchange community.
+generic Dreamwidth fetcher, and then refinements for particular
+Dreamwidth community, such as the sshg_exchange community.
 This works as either a class function or a method.
 
 This must be overridden by the specific fetcher class.
@@ -241,7 +241,6 @@ sub parse_toc {
     my %info = ();
     $info{url} = $args{url};
 
-    my @chapters = ("$args{url}?format=light");
     $info{toc_first} = 1;
 
     my $title = $self->parse_title(%args);
@@ -264,10 +263,32 @@ sub parse_toc {
     my $characters = $self->parse_characters(%args);
     $info{characters} = $characters;
 
+    $info{chapters} = $self->parse_chapter_urls(%args,
+	user=>$user,
+	is_community=>$is_community);
+
+    return %info;
+} # parse_toc
+
+=head2 parse_chapter_urls
+
+Figure out the URLs for the chapters of this story.
+
+=cut
+sub parse_chapter_urls {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+    my $content = $args{content};
+    my $user = $args{user};
+    my @chapters = ("$args{url}?format=light");
     if ($user)
     {
 	warn "user=$user\n" if $self->{verbose};
-	if ($is_community)
+	if ($args{is_community})
 	{
 	    while ($content =~
 		m/href="(http:\/\/community\.dreamwidth\.org\/${user}\/\d+.html)(#cutid\d)?">/sg)
@@ -294,10 +315,9 @@ sub parse_toc {
 	    }
 	}
     }
-    $info{chapters} = \@chapters;
 
-    return %info;
-} # parse_toc
+    return \@chapters;
+} # parse_chapter_urls
 
-1; # End of WWW::FetchStory::Fetcher::DreamWidth
+1; # End of WWW::FetchStory::Fetcher::Dreamwidth
 __END__

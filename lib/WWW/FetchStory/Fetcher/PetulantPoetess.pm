@@ -127,9 +127,27 @@ sub parse_toc {
     $info{author} = $self->parse_author(%args);
     $info{summary} = $self->parse_summary(%args);
     $info{characters} = $self->parse_characters(%args);
-
     $info{universe} = 'Harry Potter';
+    $info{chapters} = $self->parse_chapter_urls(%args, sid=>$sid);
 
+    return %info;
+} # parse_toc
+
+=head2 parse_chapter_urls
+
+Figure out the URLs for the chapters of this story.
+
+=cut
+sub parse_chapter_urls {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+    my $content = $args{content};
+    my $sid = $args{sid};
+    my @chapters = ();
     # PetulantPoetess does not have a sane chapter system
     my $fmt = 'http://www.thepetulantpoetess.com/viewstory.php?action=printable&sid=%d';
     while ($content =~ m#viewstory.php\?sid=(\d+)#sg)
@@ -139,10 +157,9 @@ sub parse_toc {
 	warn "chapter=$ch_url\n" if $self->{verbose};
 	push @chapters, $ch_url;
     }
-    $info{chapters} = \@chapters;
 
-    return %info;
-} # parse_toc
+    return \@chapters;
+} # parse_chapter_urls
 
 =head2 parse_author
 

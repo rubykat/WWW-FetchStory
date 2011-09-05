@@ -258,6 +258,7 @@ sub parse_toc {
 	$info{summary} = $self->parse_summary(%args);
     }
 
+
     # get the mobile version of the page in order to parse the other stuff
     my $mob_url = $args{url};
     $mob_url =~ s/www/m/;
@@ -265,7 +266,27 @@ sub parse_toc {
     $info{characters} = $self->parse_characters(%args,content=>$mob_page);
     $info{category} = $self->parse_category(%args,content=>$mob_page);
     $info{universe} = $self->parse_universe(%args,content=>$mob_page);
+    $info{chapters} = $self->parse_chapter_urls(%args,
+	sid=>$sid, mob_url=>$mob_url);
 
+    return %info;
+} # parse_toc
+
+=head2 parse_chapter_urls
+
+Figure out the URLs for the chapters of this story.
+
+=cut
+sub parse_chapter_urls {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+    my $content = $args{content};
+    my $sid = $args{sid};
+    my @chapters = ();
     # fortunately fanfiction.net has a sane-ish chapter system
     # find the chapter from the chapter selection form
     if ($content =~ m#<SELECT title='chapter\snavigation'\sName=chapter(.*?)</select>#is)
@@ -287,18 +308,16 @@ sub parse_toc {
 	else
 	{
 	    warn "ch_select=$ch_select";
-	    @chapters = ($args{url});
+	    @chapters = ($args{mob_url});
 	}
     }
     else # only one chapter
     {
-	@chapters = ($mob_url);
+	@chapters = ($args{mob_url});
     }
 
-    $info{chapters} = \@chapters;
-
-    return %info;
-} # parse_toc
+    return \@chapters;
+} # parse_chapter_urls
 
 =head2 parse_category
 

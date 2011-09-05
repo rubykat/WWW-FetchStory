@@ -472,7 +472,6 @@ sub parse_toc {
     );
 
     my %info = ();
-    my @chapters = ($args{url});
     $info{url} = $args{url};
     $info{title} = $self->parse_title(%args);
     $info{author} = $self->parse_author(%args);
@@ -481,10 +480,27 @@ sub parse_toc {
     $info{universe} = $self->parse_universe(%args);
     $info{category} = $self->parse_category(%args);
     $info{rating} = $self->parse_rating(%args);
-    $info{chapters} = \@chapters;
+    $info{chapters} = $self->parse_chapter_urls(%args);
 
     return %info;
 } # parse_toc
+
+=head2 parse_chapter_urls
+
+Figure out the URLs for the chapters of this story.
+
+=cut
+sub parse_chapter_urls {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+    my @chapters = ($args{url});
+
+    return \@chapters;
+} # parse_chapter_urls
 
 =head2 parse_title
 
