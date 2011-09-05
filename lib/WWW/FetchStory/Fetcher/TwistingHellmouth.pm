@@ -124,7 +124,7 @@ sub parse_toc {
     {
 	$info{complete} = $1;
     }
-    $info{chapters} = $self->parse_chapter_urls(%args, sid=>$sid);
+    $info{chapters} = $self->parse_chapter_urls(%args);
 
     return %info;
 } # parse_toc
@@ -142,7 +142,6 @@ sub parse_chapter_urls {
 	@_
     );
     my $content = $args{content};
-    my $sid = $args{sid};
     my @chapters = ($args{url});
     if ($args{url} =~ m{http://www.tthfanfic.org/Story-(\d+)})
     {

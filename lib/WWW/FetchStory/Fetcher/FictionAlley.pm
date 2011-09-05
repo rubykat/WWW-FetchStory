@@ -190,7 +190,7 @@ sub parse_toc {
     $info{summary} = $self->parse_summary(%args);
     $info{characters} = $self->parse_characters(%args);
     $info{universe} = 'Harry Potter';
-    $info{chapters} = $self->parse_chapter_urls(%args, sid=>$sid);
+    $info{chapters} = $self->parse_chapter_urls(%args);
 
     return %info;
 } # parse_toc
@@ -208,7 +208,6 @@ sub parse_chapter_urls {
 	@_
     );
     my $content = $args{content};
-    my $sid = $args{sid};
     my @chapters = ();
     while ($content =~ m#<a href\s*=\s*"(http://www.fictionalley.org/authors/\w+/\w+\.html)"\s*class\s*=\s*"chapterlink">#g)
     {
