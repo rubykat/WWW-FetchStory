@@ -19,6 +19,11 @@ use HTML::Strip;
 use HTML::Tidy::libXML;
 use EBook::EPUB;
 use YAML::Any;
+use LWP::UserAgent;
+use Encode qw( encode );
+use HTTP::Cookies;
+use HTTP::Cookies::Wget;
+use HTTP::Cookies::Mozilla;
 
 =head1 METHODS
 
@@ -33,16 +38,77 @@ sub new {
     my %parameters = @_;
     my $self = bless ({%parameters}, ref ($class) || $class);
 
-    $self->{wget} = 'wget';
-    if (-f "$ENV{HOME}/cookies.txt")
+    return ($self);
+} # new
+
+=head2 init
+
+Initialize the object.
+
+$obj->init(%args)
+
+=cut
+
+sub init {
+    my $self = shift;
+    my %parameters = @_;
+
+    foreach my $key (keys %parameters)
     {
-	$self->{wget} .= " --load-cookies $ENV{HOME}/cookies.txt";
+	$self->{$key} = $parameters{$key};
     }
+
+    if ($self->{use_wget})
+    {
+	$self->{wget_cmd} = 'wget';
+	if ($self->{wget_cookies} and -f $self->{wget_cookies})
+	{
+	    $self->{wget_cmd} .= " --load-cookies " . $self->{wget_cookies};
+	}
+	if ($self->{debug})
+	{
+	    $self->{wget_cmd} .= " --debug";
+	}
+    }
+    else
+    {
+	$self->{user_agent} = LWP::UserAgent->new(
+	    keep_alive => 1,
+	    env_proxy => 1,
+	);
+	$self->{user_agent}->show_progress($self->{verbose});
+	if ($self->{firefox_cookies} and -f $self->{firefox_cookies})
+	{
+	    my $cookies = HTTP::Cookies::Mozilla->new(
+		'file' => $self->{firefox_cookies},
+		hide_cookie2 => 1,
+		ignore_discard => 1,
+	    );
+	    print "\n--------------\n", $cookies->as_string, "\n------------\n" if $self->{debug};
+	    $self->{user_agent}->cookie_jar( $cookies );
+	}
+	elsif ($self->{wget_cookies} and -f $self->{wget_cookies})
+	{
+	    my $cookies = HTTP::Cookies::Wget->new(
+		'file' => $self->{wget_cookies},
+		hide_cookie2 => 1,
+		ignore_discard => 1,
+	    );
+	    print "\n--------------\n", $cookies->as_string, "\n------------\n" if $self->{debug};
+	    $self->{user_agent}->cookie_jar( $cookies );
+	}
+	if ($self->{debug})
+	{
+	    $self->{user_agent}->add_handler("request_send",  sub { shift->dump; return });
+	    $self->{user_agent}->add_handler("response_done", sub { shift->dump; return });
+	}
+    }
+
     $self->{stripper} = HTML::Strip->new();
     $self->{stripper}->add_striptag("head");
 
     return ($self);
-} # new
+} # init
 
 =head2 name
 
@@ -390,7 +456,8 @@ sub tidy {
     $html .= "</html>\n";
 
     my $tidy = HTML::Tidy::libXML->new();
-    my $xhtml = $tidy->clean($html, 'utf8', 1);
+    $html = encode("UTF-8", $html);
+    my $xhtml = $tidy->clean($html, 'UTF-8', 1);
 
     # fixing an error
     $xhtml =~ s!xmlns="http://www.w3.org/1999/xhtml" xmlns="http://www.w3.org/1999/xhtml"!xmlns="http://www.w3.org/1999/xhtml"!;
@@ -422,15 +489,37 @@ sub get_page {
 
     warn "getting $url\n" if $self->{verbose};
     my $content = '';
-    my $cmd = sprintf("%s -O %s '%s'", $self->{wget}, '-', $url);
-    warn "$cmd\n" if $self->{verbose};
-    my $ifh;
-    open($ifh, "${cmd}|") or die "FAILED $cmd: $!";
-    while(<$ifh>)
+
+    if ($self->{use_wget})
     {
-	$content .= $_;
+	my $cmd = sprintf("%s -O %s '%s'", $self->{wget_cmd}, '-', $url);
+	warn "$cmd\n" if $self->{verbose};
+	my $ifh;
+	open($ifh, "${cmd}|") or die "FAILED $cmd: $!";
+	while(<$ifh>)
+	{
+	    $content .= $_;
+	}
+	close($ifh);
     }
-    close($ifh);
+    else
+    {
+	my $can_accept = HTTP::Message::decodable;
+	my $res = $self->{user_agent}->get($url,
+	    'Accept-Encoding' => $can_accept,
+	    'Keep-Alive' => "300",
+	    'Connection' => 'keep-alive',
+	);
+
+	# Check the outcome of the response
+	if ($res->is_success) {
+	    print $res->status_line, "\n" if $self->{debug};
+	}
+	else {
+	    die "FAILED fetching $url ", $res->status_line;
+	}
+	$content = $res->decoded_content;
+    }
 
     return $content;
 } # get_page

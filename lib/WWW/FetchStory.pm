@@ -110,6 +110,7 @@ sub fetch_story ($%) {
     }
     if (defined $fetcher)
     {
+	$fetcher->init(%{$self});
 	return $fetcher->fetch(%args);
     }
 

@@ -7,7 +7,7 @@ fetch_story - fetch a story from the internet
 
 fetch_story [ --help | --manpage | --list ]
 
-fetch_story [ --basename I<string> ] [ --toc | --epub ] [ --yaml ] I<url>
+fetch_story [ --basename I<string> ] [ --firefox_cookies I<filename> | --wget_cookies I<filename> ] [ --toc | --epub ] [ --use_wget ] [ --yaml ] I<url>
 
 =head1 DESCRIPTION
 
@@ -36,6 +36,12 @@ instead of constructing the name from the title of the story.
 
 Convert the story file(s) into EPUB format.
 
+=item --firefox_cookies I<filename>
+
+The name of a Firefox 4+ cookie file to use for cookies, for logging in
+to restricted sites.
+This option will be ignored if using wget.
+
 =item --help
 
 Print help and exit.
@@ -52,9 +58,22 @@ Print manual page and exit. Requires "perldoc" to be installed.
 
 Build a table-of-contents file for the story.
 
+=item --use_wget
+
+Use wget to download files rather than the default Perl module, LWP.
+This may be necessary for some sites (such as LiveJournal) which require
+cookies to access restricted content, but which also don't play nice
+with the way LWP handles cookies.
+
 =item --verbose
 
 Be verbose.
+
+=item --wget_cookies I<filename>
+
+The name of a cookie file in the format used by wget for cookies,
+(also known as Netscape cookie format) for logging in to restricted sites.
+This option works whether one is using wget or not.
 
 =item --yaml
 
@@ -66,7 +85,6 @@ Put the meta-data into a YAML file.
 use Getopt::Long 2.34;
 use Pod::Usage;
 use File::Basename;
-use File::Copy;
 use YAML::Any;
 use WWW::FetchStory;
 
@@ -107,10 +125,13 @@ sub process_args ($) {
 	       'verbose!',
 	       'debug!',
 	       'basename=s',
+	       'firefox_cookies=s',
+	       'wget_cookies=s',
 	       'list',
 	       'toc!',
 	       'epub!',
 	       'yaml!',
+	       'use_wget!',
 	       'manpage',
 	      ) or pod2usage(2);
 
@@ -149,7 +170,7 @@ MAIN: {
 	{
 	    my %info = $fs->fetch_story(%data,
 					url=>$url);
-	    print Dump(\%info);
+	    print Dump(\%info) if $data{verbose};
 	}
     }
 }
