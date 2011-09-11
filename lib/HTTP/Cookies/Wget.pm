@@ -31,6 +31,13 @@ sub load
 	{
 	    $maxage = 9999999;
 	}
+	# Tweak the domain for livejournal cookies,
+	# because it puts '.' in front of all of them
+	# whether they need it or not, and this apparently confuses LWP
+	if ($domain =~ /^\.([-\w]+\.livejournal\.com)$/)
+	{
+	    $domain = $1;
+	}
 
 	$self->set_cookie(undef,$key,$val,$path,$domain,undef,
 			  0,$secure,$maxage, 0);
