@@ -151,7 +151,7 @@ sub parse_chapter_urls {
     my $content = $args{content};
     my $sid = $args{sid};
     my @chapters = ("$args{url}?format=light");
-    while ($content =~ m/href=["'](http:\/\/sshg-(?:mod|gifts)\.livejournal\.com\/\d+.html)(#cutid\d)?["']>/sg)
+    while ($content =~ m/href=["'](http:\/\/sshg-(?:mod|gifts)\.livejournal\.com\/\d+.html)/sg)
     {
 	my $ch_url = $1;
 	warn "chapter=$ch_url\n" if $self->{verbose};
