@@ -69,6 +69,10 @@ sub init {
 	{
 	    $self->{wget_cmd} .= " --debug";
 	}
+	if ($self->{wget_options})
+	{
+	    $self->{wget_cmd} .= ' ' . $self->{wget_options};
+	}
     }
     else
     {
