@@ -166,14 +166,16 @@ sub parse_chapter_urls {
     my @chapters = ();
     # Ashwinder does not have a sane chapter system
     my $fmt = 'http://ashwinder.sycophanthex.com/viewstory.php?action=printable&sid=%d';
-    if ($content =~ m#&i=1"#s)
+    if ($content =~ m#i=1"#s)
     {
-	while ($content =~ m#<a href="viewstory.php\?sid=(\d+)&i=1">#sg)
+	my $count = 1;
+	while ($content =~ m#viewstory\.php\?sid=(\d+)#sg)
 	{
 	    my $ch_sid = $1;
 	    my $ch_url = sprintf($fmt, $ch_sid);
-	    warn "chapter=$ch_url\n" if $self->{verbose};
+	    warn "chapter[$count]=$ch_url\n" if $self->{verbose};
 	    push @chapters, $ch_url;
+	    $count++;
 	}
     }
     else
