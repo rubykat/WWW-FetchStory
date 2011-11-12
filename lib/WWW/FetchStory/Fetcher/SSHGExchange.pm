@@ -131,6 +131,7 @@ sub parse_toc {
 
     $info{characters} = "Hermione Granger, Severus Snape";
     $info{universe} = 'Harry Potter';
+    $info{recipient} = $self->parse_recipient(%args);
     $info{chapters} = $self->parse_chapter_urls(%args);
 
     return %info;

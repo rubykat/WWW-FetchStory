@@ -817,6 +817,32 @@ sub parse_universe {
     return $universe;
 } # parse_universe
 
+=head2 parse_recipient
+
+Get the recipient from the content
+
+=cut
+sub parse_recipient {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+
+    my $content = $args{content};
+    my $recipient = '';
+    if ($content =~ m#Recipient: (\w+)#is)
+    {
+	$recipient = $1;
+    }
+    elsif ($content =~ m#Recipient:</(?:b|strong|u)>([^<]+)#is)
+    {
+	$recipient = $1;
+    }
+    return $recipient;
+} # parse_recipient
+
 =head2 parse_category
 
 Get the categories from the content
