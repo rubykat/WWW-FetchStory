@@ -73,7 +73,7 @@ Please report any bugs or feature requests to the author.
 
 =head1 COPYRIGHT AND LICENCE
 
-Copyright (c) 2010-2011 by Kathryn Andersen
+Copyright (c) 2010-2012 by Kathryn Andersen
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
