@@ -275,6 +275,7 @@ sub fetch {
 	my @ch_urls = @{$story_info{chapters}};
 	my $one_chapter = (@ch_urls == 1);
 	my $first_chapter_is_toc = $story_info{toc_first};
+	delete $story_info{toc_first};
 	my @ch_titles = ();
 	my @ch_wc = ();
 	my $count = (($one_chapter or $first_chapter_is_toc) ? 0 : 1);

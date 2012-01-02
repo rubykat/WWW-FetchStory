@@ -103,6 +103,10 @@ sub extract_story {
 	$ljuser= $1;
 	$title = $2;
     }
+    elsif ($content =~ m#<h1 class="b-singlepost-title">\s*([^<]+)\s*</h1>#s)
+    {
+	$title = $1;
+    }
     elsif ($content =~ m#<h2 class="asset-name page-header2"><a href="([^"]+)">([^>]+)</a></h2>#)
     {
 	$url = $1;
@@ -154,6 +158,10 @@ sub extract_story {
 
     my $story = '';
     if ($content =~ m#</table><p>(.*)<br[^>]*/><hr[^>]*/><div id='Comments'>#s)
+    {
+	$story = $1;
+    }
+    elsif ($content =~ m#<div class="b-singlepost-body">(.*?)<div class="b-singlepost-tags ljtags">#s)
     {
 	$story = $1;
     }
