@@ -1119,6 +1119,11 @@ sub get_epub {
     return %epub_info;
 } # get_epub
 
+=head2 epub_replace_description
+
+Replace or add the description to an EPUB file.
+
+=cut
 sub epub_replace_description {
     my $self = shift;
     my %args = @_;
@@ -1135,6 +1140,11 @@ sub epub_replace_description {
     $metanode->appendTextChild('dc:description', $args{description});
 } # epub_replace_description
 
+=head2 epub_add_meta
+
+Add the given meta-data to an EPUB file.
+
+=cut
 sub epub_add_meta {
     my $self = shift;
     my %args = @_;
@@ -1155,6 +1165,11 @@ EOT
 
 } # epub_add_meta
 
+=head2 epub_parse_one_node
+
+Parse a node of meta-information from an EPUB file.
+
+=cut
 sub epub_parse_one_node {
     my $self = shift;
     my %params = @_;
