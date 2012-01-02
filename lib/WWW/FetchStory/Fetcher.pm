@@ -16,8 +16,10 @@ use Date::Format;
 use Encode::ZapCP1252;
 use HTML::Entities;
 use HTML::Strip;
+use XML::LibXML;
 use HTML::Tidy::libXML;
 use EBook::EPUB;
+use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
 use YAML::Any;
 use LWP::UserAgent;
 use Encode qw( encode );
@@ -262,7 +264,7 @@ sub fetch {
     {
 	my %epub_info = $self->get_epub(base=>$basename,
 	    url=>$story_info{epub_url},
-	    title=>$story_info{title});
+	    meta=>\%story_info);
 	$story_info{storyfiles} = [$epub_info{filename}];
 
 	$self->derive_values(info=>\%story_info);
@@ -1048,13 +1050,14 @@ sub get_epub {
     my $self = shift;
     my %args = (
 	base=>'',
-	count=>0,
 	url=>'',
-	title=>'',
+	meta=>undef,
 	@_
     );
 
+    my %meta = %{$args{meta}};
     my $content = $self->get_page($args{url});
+    my %epub_info = ();
 
     #
     # Write the file
@@ -1065,10 +1068,190 @@ sub get_epub {
     print $ofh $content;
     close($ofh);
 
-    return (
-	filename=>$filename,
-	);
+    $epub_info{filename} = $filename;
+
+    #
+    # Update the file metadata
+    #
+    my $zip = Archive::Zip->new();
+    my $status = $zip->read( $filename );
+    if ($status != AZ_OK)
+    {
+	return %epub_info;
+    }
+    my @members = $zip->membersMatching('.*\.opf');
+    if (@members && $members[0])
+    {
+	my %values = ();
+	my $opf = $zip->contents($members[0]);
+	my $dom = XML::LibXML->load_xml(string => $opf,
+	    load_ext_dtd => 0,
+	    no_network => 1);
+	my @metanodes = $dom->getElementsByLocalName('metadata');
+	foreach my $metanode (@metanodes)
+	{
+	    if ($metanode->hasChildNodes)
+	    {
+		my @children = $metanode->childNodes();
+		foreach my $node (@children)
+		{
+		    $self->epub_parse_one_node(%args,
+			node=>$node,
+			values=>\%values);
+		}
+	    }
+	}
+	$self->epub_replace_description(description=>$meta{summary}, xml=>$dom);
+	# remove meta info we don't want to be added to this
+	delete $meta{description};
+	delete $meta{title};
+	delete $meta{chapters};
+	delete $meta{epub_url};
+	delete $meta{basename};
+	delete $meta{toc_first};
+	$self->epub_add_meta(meta=>\%meta, xml=>$dom);
+
+	my $str = $dom->toString;
+	$zip->contents($members[0], $str);
+	$zip->overwrite();
+    }
+
+    return %epub_info;
 } # get_epub
+
+sub epub_replace_description {
+    my $self = shift;
+    my %args = @_;
+
+    my $dom = $args{xml};
+    my @metanodes = $dom->getElementsByLocalName('metadata');
+    return unless @metanodes;
+    my $metanode = $metanodes[0];
+    my @dnodes = $metanode->getElementsByLocalName('description');
+    if ($dnodes[0])
+    {
+	$metanode->removeChild($dnodes[0]);
+    }
+    $metanode->appendTextChild('dc:description', $args{description});
+} # epub_replace_description
+
+sub epub_add_meta {
+    my $self = shift;
+    my %args = @_;
+
+    my $dom = $args{xml};
+    my @metanodes = $dom->getElementsByLocalName('metadata');
+    return unless @metanodes;
+    my $metanode = $metanodes[0];
+
+    my %meta = %{$args{meta}};
+    foreach my $key (sort keys %meta)
+    {
+	my $chunk=<<EOT;
+<meta name="$key" content="$meta{$key}"/>
+EOT
+	$metanode->appendWellBalancedChunk( $chunk );
+    }
+
+} # epub_add_meta
+
+sub epub_parse_one_node {
+    my $self = shift;
+    my %params = @_;
+
+    my $node = $params{node};
+    my $oldvals = $params{values};
+
+    my %newvals = ();
+    my $name = $node->localname;
+    return undef unless $name;
+
+    my $value = $node->textContent;
+    $value =~ s/^\s+//s;
+    $value =~ s/\s+$//s;
+    $value =~ s/\s\s+/ /gs;
+    if ($name eq 'meta' and $node->hasAttributes)
+    {
+	my $metaname = '';
+	my $metacontent = '';
+	my @atts = $node->attributes();
+	foreach my $att (@atts)
+	{
+	    my $n = $att->localname;
+	    my $v = $att->textContent;
+	    $v =~ s/^\s+//s;
+	    $v =~ s/\s+$//s;
+	    if ($n eq 'name')
+	    {
+		$metaname = $v;
+	    }
+	    else
+	    {
+		$metacontent = $v;
+	    }
+	}
+	$newvals{$metaname} = $metacontent;
+    }
+    elsif ($node->hasAttributes)
+    {
+	$newvals{$name}->{text} = $value unless !$value;
+	my @atts = $node->attributes();
+	foreach my $att (@atts)
+	{
+	    my $n = $att->localname;
+	    my $v = $att->textContent;
+	    $v =~ s/^\s+//s;
+	    $v =~ s/\s+$//s;
+	    $newvals{$name}->{$n} = $v;
+	}
+    }
+    else
+    {
+	$newvals{$name} = $value;
+    }
+
+    # Don't want to overwrite existing values
+    foreach my $newname (sort keys %newvals)
+    {
+	my $newval = $newvals{$newname};
+	if (!ref $newval)
+	{
+	    if (!exists $oldvals->{$newname})
+	    {
+		$oldvals->{$newname} = $newval;
+	    }
+	    elsif (!ref $oldvals->{$newname}) 
+	    {
+		my $v = $oldvals->{$newname};
+		$oldvals->{$newname} = [$v, $newval];
+	    }
+	    elsif (ref $oldvals->{$newname} eq 'ARRAY')
+	    {
+		push @{$oldvals->{$newname}}, $newval;
+	    }
+	    else
+	    {
+		$oldvals->{$newname}->{$newval} = $newval;
+	    }
+	}
+	else
+	{
+	    if (!exists $oldvals->{$newname})
+	    {
+		$oldvals->{$newname} = $newval;
+	    }
+	    elsif (ref $oldvals->{$newname} eq 'ARRAY')
+	    {
+		push @{$oldvals->{$newname}}, $newval;
+	    }
+	    else
+	    {
+		my $v = $oldvals->{$newname};
+		$oldvals->{$newname} = [$v, $newval];
+	    }
+	}
+    }
+} # epub_parse_one_node
 
 =head2 wordcount
 
