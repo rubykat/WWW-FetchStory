@@ -354,8 +354,7 @@ sub parse_category {
     if ($content =~ m!Additional Tags:\s*</dt>\s*<dd class="freeform tags">\s*<ul[^>]*>\s*(.*?)\s*</ul>!s)
     {
 	my $categories = $1;
-	print STDERR "categories=$categories\n";
-	my @cats = split(/,/, $categories);
+	my @cats = split(/<li>/, $categories);
 	my @categories = ();
 	foreach my $cat (@cats)
 	{
