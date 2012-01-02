@@ -72,7 +72,7 @@ sub allow {
     my $self = shift;
     my $url = shift;
 
-    return ($url =~ /archiveofourown\.org$/ || $url =~ /ao3\.org$/);
+    return ($url =~ /archiveofourown\.org/ || $url =~ /ao3\.org/);
 } # allow
 
 =head1 Private Methods
@@ -134,6 +134,7 @@ sub parse_toc {
     $info{category} = $self->parse_category(%args);
     $info{rating} = $self->parse_rating(%args);
     $info{chapters} = $self->parse_chapter_urls(%args, sid=>$sid);
+    $info{epub_url} = $self->parse_epub_url(%args, sid=>$sid);
 
     return %info;
 } # parse_toc
@@ -160,6 +161,29 @@ sub parse_chapter_urls {
 
     return \@chapters;
 } # parse_chapter_urls
+
+=head2 parse_epub_url
+
+Figure out the URL for the EPUB version of this story.
+
+=cut
+sub parse_epub_url {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+    my $content = $args{content};
+    my $sid = $args{sid};
+    my $epub_url = '';
+    if ($content =~ m!href="(/downloads/\w+/$sid/[^.]+\.epub)"!)
+    {
+	$epub_url = ("http://archiveofourown.org$1");
+    }
+
+    return $epub_url;
+} # parse_epub_url
 
 =head2 parse_title
 

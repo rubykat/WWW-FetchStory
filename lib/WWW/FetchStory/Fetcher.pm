@@ -216,6 +216,10 @@ Fetch the story, with the given options.
 Optional basename used to construct the filenames.
 If this is not given, the basename is derived from the title of the story.
 
+=item epub
+
+Create an EPUB file, deleting the HTML files which have been downloaded.
+
 =item toc
 
 Build a table-of-contents file if this is true.
@@ -248,50 +252,64 @@ sub fetch {
     my %story_info = $self->parse_toc(content=>$toc_content,
 	url=>$args{url});
 
-    my @ch_urls = @{$story_info{chapters}};
-    my $one_chapter = (@ch_urls == 1);
-    my $first_chapter_is_toc = $story_info{toc_first};
     my $basename = ($args{basename}
 		    ? $args{basename}
 		    : $self->get_story_basename($story_info{title}));
     $story_info{basename} = $basename;
     my @storyfiles = ();
-    my @ch_titles = ();
-    my @ch_wc = ();
-    my $count = (($one_chapter or $first_chapter_is_toc) ? 0 : 1);
-    foreach (my $i = 0; $i < @ch_urls; $i++)
-    {
-	my $ch_title = sprintf("%s (%d)", $story_info{title}, $i+1);
-	my %ch_info = $self->get_chapter(base=>$basename,
-				    count=>$count,
-				    url=>$ch_urls[$i],
-				    title=>$ch_title);
-	push @storyfiles, $ch_info{filename};
-	push @ch_titles, $ch_info{title};
-	push @ch_wc, $ch_info{wordcount};
-	$story_info{wordcount} += $ch_info{wordcount};
-	$count++;
-	sleep 1; # try not to overload the archive
-    }
-    $self->derive_values(info=>\%story_info);
 
-    warn Dump(\%story_info) if $self->{verbose};
+    if ($args{epub} and exists $story_info{epub_url} and $story_info{epub_url})
+    {
+	my %epub_info = $self->get_epub(base=>$basename,
+	    url=>$story_info{epub_url},
+	    title=>$story_info{title});
+	$story_info{storyfiles} = [$epub_info{filename}];
 
-    $story_info{storyfiles} = \@storyfiles;
-    $story_info{chapter_titles} = \@ch_titles;
-    $story_info{chapter_wc} = \@ch_wc;
-    if ($args{toc} and !$args{epub}) # build a table-of-contents
-    {
-	my $toc = $self->build_toc(info=>\%story_info);
-	unshift @{$story_info{storyfiles}}, $toc;
-	unshift @{$story_info{chapter_titles}}, "Table of Contents";
+	$self->derive_values(info=>\%story_info);
+	warn Dump(\%story_info) if $self->{verbose};
     }
-    if ($args{epub})
+    else
     {
-	my $epub_file = $self->build_epub(info=>\%story_info);
-	# if we have built an EPUB file, then the storyfiles
-	# are now just one EPUB file.
-	$story_info{storyfiles} = [$epub_file];
+	my @ch_urls = @{$story_info{chapters}};
+	my $one_chapter = (@ch_urls == 1);
+	my $first_chapter_is_toc = $story_info{toc_first};
+	my @ch_titles = ();
+	my @ch_wc = ();
+	my $count = (($one_chapter or $first_chapter_is_toc) ? 0 : 1);
+	foreach (my $i = 0; $i < @ch_urls; $i++)
+	{
+	    my $ch_title = sprintf("%s (%d)", $story_info{title}, $i+1);
+	    my %ch_info = $self->get_chapter(base=>$basename,
+		count=>$count,
+		url=>$ch_urls[$i],
+		title=>$ch_title);
+	    push @storyfiles, $ch_info{filename};
+	    push @ch_titles, $ch_info{title};
+	    push @ch_wc, $ch_info{wordcount};
+	    $story_info{wordcount} += $ch_info{wordcount};
+	    $count++;
+	    sleep 1; # try not to overload the archive
+	}
+	$self->derive_values(info=>\%story_info);
+
+	warn Dump(\%story_info) if $self->{verbose};
+
+	$story_info{storyfiles} = \@storyfiles;
+	$story_info{chapter_titles} = \@ch_titles;
+	$story_info{chapter_wc} = \@ch_wc;
+	if ($args{toc} and !$args{epub}) # build a table-of-contents
+	{
+	    my $toc = $self->build_toc(info=>\%story_info);
+	    unshift @{$story_info{storyfiles}}, $toc;
+	    unshift @{$story_info{chapter_titles}}, "Table of Contents";
+	}
+	if ($args{epub})
+	{
+	    my $epub_file = $self->build_epub(info=>\%story_info);
+	    # if we have built an EPUB file, then the storyfiles
+	    # are now just one EPUB file.
+	    $story_info{storyfiles} = [$epub_file];
+	}
     }
     if ($args{yaml})
     {
@@ -574,6 +592,7 @@ sub parse_toc {
     $info{category} = $self->parse_category(%args);
     $info{rating} = $self->parse_rating(%args);
     $info{chapters} = $self->parse_chapter_urls(%args);
+    $info{epub_url} = $self->parse_epub_url(%args);
 
     return %info;
 } # parse_toc
@@ -594,6 +613,22 @@ sub parse_chapter_urls {
 
     return \@chapters;
 } # parse_chapter_urls
+
+=head2 parse_epub_url
+
+Figure out the URL for the EPUB version of this story, if there is one.
+
+=cut
+sub parse_epub_url {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+
+    return undef;
+} # parse_epub_url
 
 =head2 parse_title
 
@@ -998,6 +1033,42 @@ sub get_chapter {
 	charcount=>$wc{chars},
 	);
 } # get_chapter
+
+=head2 get_epub
+
+Get the EPUB version of the story, tidy it,
+and save it to a file.
+
+    $filename = $obj->get_epub(base=>$basename,
+				    url=>$url);
+
+=cut
+
+sub get_epub {
+    my $self = shift;
+    my %args = (
+	base=>'',
+	count=>0,
+	url=>'',
+	title=>'',
+	@_
+    );
+
+    my $content = $self->get_page($args{url});
+
+    #
+    # Write the file
+    #
+    my $filename = $args{base} . '.epub';
+    my $ofh;
+    open($ofh, ">",  $filename) || die "Can't write to $filename";
+    print $ofh $content;
+    close($ofh);
+
+    return (
+	filename=>$filename,
+	);
+} # get_epub
 
 =head2 wordcount
 
