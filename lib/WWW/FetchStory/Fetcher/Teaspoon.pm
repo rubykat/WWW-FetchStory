@@ -101,7 +101,7 @@ sub extract_story {
 	$title = $1;
 	$user= $2;
     }
-    warn "user=$user, title=$title\n" if $self->{verbose};
+    warn "user=$user, title=$title\n" if ($self->{verbose} > 1);
 
     my $story = '';
     if ($content =~ m#(<strong>Summary:.*)<u>Disclaimer:</u>#s)
