@@ -95,7 +95,7 @@ sub extract_story {
     my $title = $args{title};
 
     my $chapter = $self->parse_ch_title(%args);
-    warn "chapter=$chapter\n" if $self->{verbose};
+    warn "chapter=$chapter\n" if ($self->{verbose} > 1);
 
     my $story = '';
     if ($content =~ m#<td id="page_content">(.*?)</td></tr>\s*<tr class="inverse" id="page_footer">#s)
