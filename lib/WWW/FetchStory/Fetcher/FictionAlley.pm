@@ -137,7 +137,7 @@ sub extract_story {
     {
 	return $content;
     }
-    warn "title=$story_title\n" if $self->{verbose};
+    warn "title=$story_title\n" if ($self->{verbose} > 1);
 
     my $out = <<EOT;
 <h1>$story_title</h1>
