@@ -165,6 +165,10 @@ sub extract_story {
     {
 	$story = $1;
     }
+    elsif ($content =~ m#<div class="b-singlepost-body">(.*?)</div>#s)
+    {
+	$story = $1;
+    }
     elsif ($content =~ m#<div class="entrytext">(.*?)<div class="meta">#s)
     {
 	$story = $1;
