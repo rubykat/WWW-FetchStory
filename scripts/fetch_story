@@ -54,6 +54,10 @@ List the available fetcher plugins.
 
 Print manual page and exit. Requires "perldoc" to be installed.
 
+=item --quiet
+
+Don't be verbose.
+
 =item --toc
 
 Build a table-of-contents file for the story.
@@ -67,7 +71,7 @@ with the way LWP handles cookies.
 
 =item --verbose
 
-Be verbose.
+Be verbose.  If this option is repeated, the output will be even more verbose.
 
 =item --wget_cookies I<filename>
 
@@ -122,7 +126,8 @@ sub process_args ($) {
     my $op = new Getopt::Long::Parser;
     $op->configure(qw(auto_version auto_help));
     $op->getoptions($opts,
-	       'verbose!',
+	       'verbose+',
+	       'quiet',
 	       'debug!',
 	       'basename=s',
 	       'firefox_cookies=s',
@@ -141,6 +146,10 @@ sub process_args ($) {
 		    -exitval => 0,
 		    -verbose => 2,
 	    });
+    }
+    if ($opts->{quiet})
+    {
+	$opts->{verbose} = 0;
     }
 
 } # process_args
