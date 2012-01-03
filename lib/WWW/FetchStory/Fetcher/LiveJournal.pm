@@ -355,6 +355,7 @@ sub parse_toc {
 
     my $title = $self->parse_title(%args);
     $title =~ s/${user}:\s*//;
+    $title =~ s/Fic:\s*//;
     $info{title} = $title;
 
     my $summary = $self->parse_summary(%args);

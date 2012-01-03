@@ -775,6 +775,10 @@ sub parse_summary {
     {
 	$summary = $1;
     }
+    elsif ($content =~ m#>Summary:\s*</span>\s*([^<]+)\s*<br#s)
+    {
+	$summary = $1;
+    }
     elsif ($content =~ /<i>Summary:<\/i>\s*(.*?)\s*$/m)
     {
 	$summary = $1;
