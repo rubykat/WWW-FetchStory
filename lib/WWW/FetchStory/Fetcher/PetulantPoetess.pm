@@ -80,7 +80,8 @@ sub allow {
 Parse the table-of-contents file.
 
     %info = $self->parse_toc(content=>$content,
-			 url=>$url);
+			 url=>$url,
+			 urls=>\@urls);
 
 This should return a hash containing:
 
@@ -88,8 +89,9 @@ This should return a hash containing:
 
 =item chapters
 
-An array of URLs for the chapters of the story.  (In the case where the
-story only takes one page, that will be the chapter).
+An array of URLs for the chapters of the story.  In the case where the
+story only takes one page, that will be the chapter.
+In the case where multiple URLs have been passed in, it will be those URLs.
 
 =item title
 
@@ -148,14 +150,22 @@ sub parse_chapter_urls {
     my $content = $args{content};
     my $sid = $args{sid};
     my @chapters = ();
-    # PetulantPoetess does not have a sane chapter system
-    my $fmt = 'http://www.thepetulantpoetess.com/viewstory.php?action=printable&sid=%d';
-    while ($content =~ m#viewstory.php\?sid=(\d+)#sg)
+    if (defined $args{urls})
     {
-	my $ch_sid = $1;
-	my $ch_url = sprintf($fmt, $ch_sid);
-	warn "chapter=$ch_url\n" if $self->{verbose};
-	push @chapters, $ch_url;
+	@chapters = @{$args{urls}};
+    }
+    if (@chapters == 1)
+    {
+	@chapters = ();
+	# PetulantPoetess does not have a sane chapter system
+	my $fmt = 'http://www.thepetulantpoetess.com/viewstory.php?action=printable&sid=%d';
+	while ($content =~ m#viewstory.php\?sid=(\d+)#sg)
+	{
+	    my $ch_sid = $1;
+	    my $ch_url = sprintf($fmt, $ch_sid);
+	    warn "chapter=$ch_url\n" if ($self->{verbose} > 1);
+	    push @chapters, $ch_url;
+	}
     }
 
     return \@chapters;

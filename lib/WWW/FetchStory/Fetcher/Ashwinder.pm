@@ -80,7 +80,8 @@ sub allow {
 Parse the table-of-contents file.
 
     %info = $self->parse_toc(content=>$content,
-			 url=>$url);
+			 url=>$url,
+			 urls=>\@urls);
 
 This should return a hash containing:
 
@@ -88,8 +89,9 @@ This should return a hash containing:
 
 =item chapters
 
-An array of URLs for the chapters of the story.  (In the case where the
-story only takes one page, that will be the chapter).
+An array of URLs for the chapters of the story.  In the case where the
+story only takes one page, that will be the chapter.
+In the case where multiple URLs have been passed in, it will be those URLs.
 
 =item title
 
@@ -157,30 +159,40 @@ Figure out the URLs for the chapters of this story.
 sub parse_chapter_urls {
     my $self = shift;
     my %args = (
-	url=>'',
+	urls=>undef,
 	content=>'',
 	@_
     );
     my $content = $args{content};
     my $sid = $args{sid};
     my @chapters = ();
-    # Ashwinder does not have a sane chapter system
-    my $fmt = 'http://ashwinder.sycophanthex.com/viewstory.php?action=printable&sid=%d';
-    if ($content =~ m#i=1"#s)
+
+    if (defined $args{urls})
     {
-	my $count = 1;
-	while ($content =~ m#viewstory\.php\?sid=(\d+)#sg)
-	{
-	    my $ch_sid = $1;
-	    my $ch_url = sprintf($fmt, $ch_sid);
-	    warn "chapter[$count]=$ch_url\n" if $self->{verbose};
-	    push @chapters, $ch_url;
-	    $count++;
-	}
+	@chapters = @{$args{urls}};
     }
-    else
+
+    if (@chapters == 1)
     {
-	@chapters = (sprintf($fmt, $sid));
+	# Ashwinder does not have a sane chapter system
+	my $fmt = 'http://ashwinder.sycophanthex.com/viewstory.php?action=printable&sid=%d';
+	if ($content =~ m#i=1"#s)
+	{
+	    @chapters = ();
+	    my $count = 1;
+	    while ($content =~ m#viewstory\.php\?sid=(\d+)#sg)
+	    {
+		my $ch_sid = $1;
+		my $ch_url = sprintf($fmt, $ch_sid);
+		warn "chapter[$count]=$ch_url\n" if ($self->{verbose} > 1);
+		push @chapters, $ch_url;
+		$count++;
+	    }
+	}
+	else
+	{
+	    @chapters = (sprintf($fmt, $sid));
+	}
     }
 
     return \@chapters;

@@ -160,7 +160,8 @@ EOT
 Parse the table-of-contents file.
 
     %info = $self->parse_toc(content=>$content,
-			 url=>$url);
+			 url=>$url,
+			 urls=>\@urls);
 
 This should return a hash containing:
 
@@ -168,8 +169,9 @@ This should return a hash containing:
 
 =item chapters
 
-An array of URLs for the chapters of the story.  (In the case where the
-story only takes one page, that will be the chapter).
+An array of URLs for the chapters of the story.  In the case where the
+story only takes one page, that will be the chapter.
+In the case where multiple URLs have been passed in, it will be those URLs.
 
 =item title
 
@@ -340,20 +342,28 @@ sub parse_chapter_urls {
     my $sid = $args{sid};
     my $fmt = $args{fmt};
     my @chapters = ();
-    # fortunately Teaspoon has a sane chapter system
-    if ($content =~ m#chapter=all#s)
+    if (defined $args{urls})
     {
-	while ($content =~ m#<a href="viewstory.php\?sid=${sid}&amp;chapter=(\d+)">#sg)
-	{
-	    my $ch_num = $1;
-	    my $ch_url = sprintf($fmt, $sid, $ch_num);
-	    warn "chapter=$ch_url\n" if $self->{verbose};
-	    push @chapters, $ch_url;
-	}
+	@chapters = @{$args{urls}};
     }
-    else
+    if (@chapters == 1)
     {
-	@chapters = (sprintf($fmt, $sid, 1));
+	# fortunately Teaspoon has a sane chapter system
+	if ($content =~ m#chapter=all#s)
+	{
+	    @chapters = ();
+	    while ($content =~ m#<a href="viewstory.php\?sid=${sid}&amp;chapter=(\d+)">#sg)
+	    {
+		my $ch_num = $1;
+		my $ch_url = sprintf($fmt, $sid, $ch_num);
+		warn "chapter=$ch_url\n" if ($self->{verbose} > 1);
+		push @chapters, $ch_url;
+	    }
+	}
+	else
+	{
+	    @chapters = (sprintf($fmt, $sid, 1));
+	}
     }
 
     return \@chapters;

@@ -124,7 +124,8 @@ sub extract_story {
 Parse the table-of-contents file.
 
     %info = $self->parse_toc(content=>$content,
-			 url=>$url);
+			 url=>$url,
+			 urls=>\@urls);
 
 This should return a hash containing:
 
@@ -132,8 +133,9 @@ This should return a hash containing:
 
 =item chapters
 
-An array of URLs for the chapters of the story.  (In the case where the
-story only takes one page, that will be the chapter).
+An array of URLs for the chapters of the story.  In the case where the
+story only takes one page, that will be the chapter.
+In the case where multiple URLs have been passed in, it will be those URLs.
 
 =item title
 
@@ -197,19 +199,27 @@ sub parse_chapter_urls {
     my $content = $args{content};
     my $sid = $args{sid};
     my @chapters = ();
-    if ($args{url} =~ /file.php/) # a single file
+    if (defined $args{urls})
     {
-	@chapters = ($args{url});
+	@chapters = @{$args{urls}};
     }
-    else
+    if (@chapters == 1)
     {
-	my $fmt = 'http://www.restrictedsection.org/file.php?file=%d';
-	while ($content =~ m#file\.php\?file=(\d+)'#gs)
+	if ($args{url} =~ /file.php/) # a single file
 	{
-	    my $ch = $1;
-	    my $ch_url = sprintf($fmt, $ch);
-	    warn "chapter=$ch_url\n" if $self->{verbose};
-	    push @chapters, $ch_url;
+	    @chapters = ($args{url});
+	}
+	else
+	{
+	    @chapters = ();
+	    my $fmt = 'http://www.restrictedsection.org/file.php?file=%d';
+	    while ($content =~ m#file\.php\?file=(\d+)'#gs)
+	    {
+		my $ch = $1;
+		my $ch_url = sprintf($fmt, $ch);
+		warn "chapter=$ch_url\n" if ($self->{verbose} > 1);
+		push @chapters, $ch_url;
+	    }
 	}
     }
 

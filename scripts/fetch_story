@@ -7,13 +7,15 @@ fetch_story - fetch a story from the internet
 
 fetch_story [ --help | --manpage | --list ]
 
-fetch_story [ --basename I<string> ] [ --firefox_cookies I<filename> | --wget_cookies I<filename> ] [ --toc | --epub ] [ --use_wget ] [ --yaml ] I<url>
+fetch_story [ --basename I<string> ] [ --firefox_cookies I<filename> | --wget_cookies I<filename> ] [ --toc | --epub ] [ --use_wget ] [ --yaml ] I<url> [ I<url> ] ...
 
 =head1 DESCRIPTION
 
 This fetches a story from the net (including multi-part stories) tidies up the
-HTML, and saves it.  If a story is deduced to be a multi-chapter story, all
-chapters of the story are downloaded, and saved to separate files.
+HTML, and saves it.  If multiple URLs are given, they are assumed to be URLs
+for all the chapters of the story.  If one URL is given, and a story is deduced
+to be a multi-chapter story, all chapters of the story are downloaded.  In
+both cases, the chapters will be saved to separate files.
 
 =head2 Fetcher Plugins
 
@@ -174,12 +176,8 @@ MAIN: {
     }
     else
     {
-	my $count = 1;
-	foreach my $url (@ARGV)
-	{
-	    my %info = $fs->fetch_story(%data,
-					url=>$url);
-	    print Dump(\%info) if $data{verbose};
-	}
+	my %info = $fs->fetch_story(%data,
+	    urls=>\@ARGV);
+	print Dump(\%info) if $data{verbose};
     }
 }

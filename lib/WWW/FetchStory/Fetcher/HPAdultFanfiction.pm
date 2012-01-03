@@ -153,7 +153,8 @@ sub extract_story {
 Parse the table-of-contents file.
 
     %info = $self->parse_toc(content=>$content,
-			 url=>$url);
+			 url=>$url,
+			 urls=>\@urls);
 
 This should return a hash containing:
 
@@ -161,8 +162,9 @@ This should return a hash containing:
 
 =item chapters
 
-An array of URLs for the chapters of the story.  (In the case where the
-story only takes one page, that will be the chapter).
+An array of URLs for the chapters of the story.  In the case where the
+story only takes one page, that will be the chapter.
+In the case where multiple URLs have been passed in, it will be those URLs.
 
 =item title
 
@@ -242,21 +244,29 @@ sub parse_chapter_urls {
     my $content = $args{content};
     my $sid = $args{sid};
     my @chapters = ();
-    my $fmt = 'http://hp.adultfanfiction.net/story.php?no=%d&chapter=%d';
-    my $max_chapter = 0;
-    while ($content =~ m#<option value='story\.php\?no=${sid}&chapter=(\d+)'#gs)
+    if (defined $args{urls})
     {
-	my $a_ch = $1;
-	if ($a_ch > $max_chapter)
-	{
-	    $max_chapter = $a_ch;
-	}
+	@chapters = @{$args{urls}};
     }
-    for (my $ch = 1; $ch <= $max_chapter; $ch++)
+    if (@chapters == 1)
     {
-	my $ch_url = sprintf($fmt, $sid, $ch);
-	warn "chapter=$ch_url\n" if $self->{verbose};
-	push @chapters, $ch_url;
+	@chapters = ();
+	my $fmt = 'http://hp.adultfanfiction.net/story.php?no=%d&chapter=%d';
+	my $max_chapter = 0;
+	while ($content =~ m#<option value='story\.php\?no=${sid}&chapter=(\d+)'#gs)
+	{
+	    my $a_ch = $1;
+	    if ($a_ch > $max_chapter)
+	    {
+		$max_chapter = $a_ch;
+	    }
+	}
+	for (my $ch = 1; $ch <= $max_chapter; $ch++)
+	{
+	    my $ch_url = sprintf($fmt, $sid, $ch);
+	    warn "chapter=$ch_url\n" if ($self->{verbose} > 1);
+	    push @chapters, $ch_url;
+	}
     }
 
     return \@chapters;

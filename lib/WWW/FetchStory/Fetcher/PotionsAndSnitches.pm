@@ -214,7 +214,8 @@ EOT
 Parse the table-of-contents file.
 
     %info = $self->parse_toc(content=>$content,
-			 url=>$url);
+			 url=>$url,
+			 urls=>\@urls);
 
 This should return a hash containing:
 
@@ -222,8 +223,9 @@ This should return a hash containing:
 
 =item chapters
 
-An array of URLs for the chapters of the story.  (In the case where the
-story only takes one page, that will be the chapter).
+An array of URLs for the chapters of the story.  In the case where the
+story only takes one page, that will be the chapter.
+In the case where multiple URLs have been passed in, it will be those URLs.
 
 =item title
 
@@ -282,16 +284,24 @@ sub parse_chapter_urls {
     my $content = $args{content};
     my $sid = $args{sid};
     my @chapters = ();
-    # fortunately Potions-And-Snitches has a sane chapter system
-    if ($content =~ m#<span class="label">Chapters:\s*</span>\s*(\d+)#s)
+    if (defined $args{urls})
     {
-	my $fmt = 'http://www.potionsandsnitches.net/fanfiction/viewstory.php?action=printable&textsize=0&sid=%d&chapter=%d';
-	my $num_ch = $1;
-	for (my $i=1; $i <= $num_ch; $i++)
+	@chapters = @{$args{urls}};
+    }
+    if (@chapters == 1)
+    {
+	# fortunately Potions-And-Snitches has a sane chapter system
+	if ($content =~ m#<span class="label">Chapters:\s*</span>\s*(\d+)#s)
 	{
-	    my $ch_url = sprintf($fmt, $sid, $i);
-	    warn "chapter=$ch_url\n" if $self->{verbose};
-	    push @chapters, $ch_url;
+	    @chapters = ();
+	    my $fmt = 'http://www.potionsandsnitches.net/fanfiction/viewstory.php?action=printable&textsize=0&sid=%d&chapter=%d';
+	    my $num_ch = $1;
+	    for (my $i=1; $i <= $num_ch; $i++)
+	    {
+		my $ch_url = sprintf($fmt, $sid, $i);
+		warn "chapter=$ch_url\n" if ($self->{verbose} > 1);
+		push @chapters, $ch_url;
+	    }
 	}
     }
 

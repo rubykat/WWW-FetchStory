@@ -175,7 +175,8 @@ sub extract_story {
 Parse the table-of-contents file.
 
     %info = $self->parse_toc(content=>$content,
-			 url=>$url);
+			 url=>$url,
+			 urls=>\@urls);
 
 This should return a hash containing:
 
@@ -183,8 +184,9 @@ This should return a hash containing:
 
 =item chapters
 
-An array of URLs for the chapters of the story.  (In the case where the
-story only takes one page, that will be the chapter).
+An array of URLs for the chapters of the story.  In the case where the
+story only takes one page, that will be the chapter.
+In the case where multiple URLs have been passed in, it will be those URLs.
 
 =item title
 
@@ -287,33 +289,42 @@ sub parse_chapter_urls {
     my $content = $args{content};
     my $sid = $args{sid};
     my @chapters = ();
-    # fortunately fanfiction.net has a sane-ish chapter system
-    # find the chapter from the chapter selection form
-    if ($content =~ m#<SELECT title='chapter\snavigation'\sName=chapter(.*?)</select>#is)
+    if (defined $args{urls})
     {
-	my $ch_select = $1;
-	if ($ch_select =~ m/<option\s*value=(\d+)\s*>[^<]+$/s)
+	@chapters = @{$args{urls}};
+	for (my $i = 0; $i < @chapters; $i++)
 	{
-	    my $num_ch = $1;
-	    my $fmt = $args{url};
-	    $fmt =~ s/www/m/;
-	    $fmt =~ s!/\d+/\d+/!/%d/\%d/!;
-	    for (my $i=1; $i <= $num_ch; $i++)
-	    {
-		my $ch_url = sprintf($fmt, $sid, $i);
-		warn "chapter=$ch_url\n" if $self->{verbose};
-		push @chapters, $ch_url;
-	    }
-	}
-	else
-	{
-	    warn "ch_select=$ch_select";
-	    @chapters = ($args{mob_url});
+	    $chapters[$i] =~ s/www/m/; # convert to mobile-site URL
 	}
     }
-    else # only one chapter
+
+    if (@chapters == 1)
     {
-	@chapters = ($args{mob_url});
+	# fortunately fanfiction.net has a sane-ish chapter system
+	# find the chapter from the chapter selection form
+	if ($content =~ m#<SELECT title='chapter\snavigation'\sName=chapter(.*?)</select>#is)
+	{
+	    @chapters = ();
+	    my $ch_select = $1;
+	    if ($ch_select =~ m/<option\s*value=(\d+)\s*>[^<]+$/s)
+	    {
+		my $num_ch = $1;
+		my $fmt = $args{url};
+		$fmt =~ s/www/m/;
+		$fmt =~ s!/\d+/\d+/!/%d/\%d/!;
+		for (my $i=1; $i <= $num_ch; $i++)
+		{
+		    my $ch_url = sprintf($fmt, $sid, $i);
+		    warn "chapter=$ch_url\n" if ($self->{verbose} > 1);
+		    push @chapters, $ch_url;
+		}
+	    }
+	    else
+	    {
+		warn "ch_select=$ch_select";
+		@chapters = ($args{mob_url});
+	    }
+	}
     }
 
     return \@chapters;

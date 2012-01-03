@@ -82,7 +82,8 @@ sub allow {
 Parse the table-of-contents file.
 
     %info = $self->parse_toc(content=>$content,
-			 url=>$url);
+			 url=>$url,
+			 urls=>\@urls);
 
 This should return a hash containing:
 
@@ -90,8 +91,9 @@ This should return a hash containing:
 
 =item chapters
 
-An array of URLs for the chapters of the story.  (In the case where the
-story only takes one page, that will be the chapter).
+An array of URLs for the chapters of the story.  In the case where the
+story only takes one page, that will be the chapter.
+In the case where multiple URLs have been passed in, it will be those URLs.
 
 =item title
 
@@ -148,14 +150,19 @@ Figure out the URLs for the chapters of this story.
 sub parse_chapter_urls {
     my $self = shift;
     my %args = (
-	url=>'',
+	urls=>undef,
 	content=>'',
 	@_
     );
     my $content = $args{content};
     my $sid = $args{sid};
     my @chapters = ();
-    if ($content =~ m!href="(/downloads/[-\w]+/$sid/[^.]+\.html)"!)
+    if (defined $args{urls})
+    {
+	@chapters = @{$args{urls}};
+    }
+    if (@chapters == 1
+	    and $content =~ m!href="(/downloads/[-\w]+/$sid/[^.]+\.html)"!)
     {
 	@chapters = ("http://archiveofourown.org$1");
     }
