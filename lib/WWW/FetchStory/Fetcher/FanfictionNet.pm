@@ -103,11 +103,11 @@ sub extract_story {
     }
     $author =~ s/^\s*//;
     $author =~ s/\s*$//;
-    warn "title=$title\n" if $self->{verbose};
-    warn "author=$author\n" if $self->{verbose};
+    warn "title=$title\n" if ($self->{verbose} > 1);
+    warn "author=$author\n" if ($self->{verbose} > 1);
 
     my $universe = $self->parse_universe(content=>$content);
-    warn "universe=$universe\n" if $self->{verbose};
+    warn "universe=$universe\n" if ($self->{verbose} > 1);
 
     my $category = '';
     my $characters = '';
@@ -121,11 +121,11 @@ sub extract_story {
 	$characters =~ s!\s*\&\s!, !g;
 
     }
-    warn "category=$category\n" if $self->{verbose};
-    warn "characters=$characters\n" if $self->{verbose};
+    warn "category=$category\n" if ($self->{verbose} > 1);
+    warn "characters=$characters\n" if ($self->{verbose} > 1);
 
     my $chapter = $self->parse_ch_title(%args);
-    warn "chapter=$chapter\n" if $self->{verbose};
+    warn "chapter=$chapter\n" if ($self->{verbose} > 1);
 
     my $story = '';
     if ($content =~ m#id=storycontent class=storycontent>(.*?)\s*</div>\s*</div>\s*<div id=content>#s)
