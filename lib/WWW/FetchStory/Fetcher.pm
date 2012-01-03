@@ -82,7 +82,7 @@ sub init {
 	    keep_alive => 1,
 	    env_proxy => 1,
 	);
-	$self->{user_agent}->show_progress($self->{verbose});
+	$self->{user_agent}->show_progress($self->{verbose} > 0);
 	if ($self->{firefox_cookies} and -f $self->{firefox_cookies})
 	{
 	    my $cookies = HTTP::Cookies::Mozilla->new(
@@ -268,7 +268,7 @@ sub fetch {
 	$story_info{storyfiles} = [$epub_info{filename}];
 
 	$self->derive_values(info=>\%story_info);
-	warn Dump(\%story_info) if $self->{verbose};
+	warn Dump(\%story_info) if ($self->{verbose} > 1);
     }
     else
     {
@@ -295,7 +295,7 @@ sub fetch {
 	}
 	$self->derive_values(info=>\%story_info);
 
-	warn Dump(\%story_info) if $self->{verbose};
+	warn Dump(\%story_info) if ($self->{verbose} > 1);
 
 	$story_info{storyfiles} = \@storyfiles;
 	$story_info{chapter_titles} = \@ch_titles;
@@ -518,7 +518,7 @@ sub get_page {
     if ($self->{use_wget})
     {
 	my $cmd = sprintf("%s -O %s '%s'", $self->{wget_cmd}, '-', $url);
-	warn "$cmd\n" if $self->{verbose};
+	warn "$cmd\n" if ($self->{verbose} > 1);
 	my $ifh;
 	open($ifh, "${cmd}|") or die "FAILED $cmd: $!";
 	while(<$ifh>)
