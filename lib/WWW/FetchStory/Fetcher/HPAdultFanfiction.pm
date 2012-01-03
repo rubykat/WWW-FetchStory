@@ -114,10 +114,10 @@ sub extract_story {
     my $title = $args{title};
 
     my $chapter = $self->parse_ch_title(%args);
-    warn "chapter=$chapter\n" if $self->{verbose};
+    warn "chapter=$chapter\n" if ($self->{verbose} > 1);
 
     my $author = $self->parse_author(%args);
-    warn "author=$author\n" if $self->{verbose};
+    warn "author=$author\n" if ($self->{verbose} > 1);
 
     my $story = '';
     if ($content =~ m!<td colspan="3" bgcolor="F4EBCC">\s*<font color="#003333">Disclaimer:[^<]+</font>\s*</td>\s*</tr>\s*<tr>\s*<td colspan="3">\s*<p>&nbsp;</p>\s*</td>\s*</tr>\s*<tr>\s*<td colspan="3" bgcolor="F4EBCC">\s*(.*?)<tr class='catdis'>!s)
