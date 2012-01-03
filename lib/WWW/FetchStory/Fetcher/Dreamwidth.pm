@@ -120,7 +120,7 @@ sub extract_story {
 	$year = $1;
 	$month = $2;
 	$day = $3;
-	warn "year=$year,month=$month,day=$day\n" if $self->{verbose};
+	warn "year=$year,month=$month,day=$day\n" if ($self->{verbose} > 1);
     }
 
     if (!$url)
@@ -152,8 +152,8 @@ sub extract_story {
     {
 	$story = $1;
     }
-    warn "user=$user, title=$title\n" if $self->{verbose};
-    warn "url=$url\n" if $self->{verbose};
+    warn "user=$user, title=$title\n" if ($self->{verbose} > 1);
+    warn "url=$url\n" if ($self->{verbose} > 1);
     if ($story)
     {
 	$story = $self->tidy_chars($story);
@@ -296,7 +296,7 @@ sub parse_chapter_urls {
 		my $ch_url = $1;
 		if ($ch_url ne $args{url})
 		{
-		    warn "chapter=$ch_url\n" if $self->{verbose};
+		    warn "chapter=$ch_url\n" if ($self->{verbose} > 1);
 		    push @chapters, "${ch_url}?format=light";
 		}
 	    }
@@ -309,7 +309,7 @@ sub parse_chapter_urls {
 		my $ch_url = $1;
 		if ($ch_url ne $args{url})
 		{
-		    warn "chapter=$ch_url\n" if $self->{verbose};
+		    warn "chapter=$ch_url\n" if ($self->{verbose} > 1);
 		    push @chapters, "${ch_url}?format=light";
 		}
 	    }
