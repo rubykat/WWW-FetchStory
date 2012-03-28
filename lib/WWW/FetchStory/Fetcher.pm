@@ -1323,6 +1323,7 @@ sub build_toc {
     my $filename = sprintf("%s00.html", $info->{basename});
 
     my $html;
+    my $characters = join( ', ', @{$info->{characters}} );
     $html = <<EOT;
 <html>
 <head><title>$info->{title}</title></head>
@@ -1335,7 +1336,7 @@ $info->{summary}
 </p>
 <p><b>Words:</b> $info->{wordcount}<br/>
 <b>Universe:</b> $info->{universe}</p>
-<b>Characters:</b> $info->{characters}</p>
+<b>Characters:</b> $characters</p>
 <ol>
 EOT
 
