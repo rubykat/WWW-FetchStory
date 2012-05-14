@@ -486,8 +486,10 @@ sub tidy {
     $html = encode("UTF-8", $html);
     my $xhtml = $tidy->clean($html, 'UTF-8', 1);
 
-    # fixing an error
+    # fixing some errors
     $xhtml =~ s!xmlns="http://www.w3.org/1999/xhtml" xmlns="http://www.w3.org/1999/xhtml"!xmlns="http://www.w3.org/1999/xhtml"!;
+    $xhtml =~ s!<i/>!!g;
+    $xhtml =~ s!<b/>!!g;
 
     return $xhtml;
 } # tidy

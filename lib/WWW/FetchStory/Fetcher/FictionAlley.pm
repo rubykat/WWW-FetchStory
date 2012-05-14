@@ -229,6 +229,33 @@ sub parse_chapter_urls {
     return \@chapters;
 } # parse_chapter_urls
 
+=head2 parse_ch_title
+
+Get the chapter title from the content
+
+=cut
+sub parse_ch_title {
+    my $self = shift;
+    my %args = (
+	content=>'',
+	@_
+    );
+
+    my $content = $args{content};
+    my $title = '';
+    if ($content =~ /\((Chapter \d+)\)/si)
+    {
+	$title = $1;
+    }
+    else
+    {
+	$title = $self->parse_title(%args);
+    }
+    $title =~ s/<u>//ig;
+    $title =~ s/<\/u>//ig;
+    return $title;
+} # parse_ch_title
+
 =head2 parse_title
 
 Get the title from the content
@@ -244,7 +271,7 @@ sub parse_title {
 
     my $content = $args{content};
     my $title = '';
-    if ($content =~ m/<h1\s*class\s*=\s*"title"[^>]*>([^<]+)\s*by\s*<a/s)
+    if ($content =~ m/<h1\s*class\s*=\s*"title"[^>]*>([^<]+)\s+by\s+<a/s)
     {
 	$title = $1;
 	$title =~ s/&#039;/'/g;
@@ -271,7 +298,11 @@ sub parse_author {
 
     my $content = $args{content};
     my $author = '';
-    if ($content =~ m/<h1\s*class\s*=\s*"title"[^>]*>[^<]+\s*by\s*<a href="[^"]+">([^<]+)<\/a>/s)
+    if ($content =~ m!"http://www.fictionalley.org/authors/\w+/">([^<]+)</a>!s)
+    {
+	$author = $1;
+    }
+    elsif ($content =~ m/<h1\s*class\s*=\s*"title"[^>]*>[^<]+\s*by\s*<a href="[^"]+">([^<]+)<\/a>/s)
     {
 	$author = $1;
     }
@@ -279,6 +310,8 @@ sub parse_author {
     {
 	$author = $self->SUPER::parse_author(%args);
     }
+    $author =~ s/\./ /g;
+    $author =~ s/\s\s+/ /g;
     return $author;
 } # parse_author
 
@@ -297,7 +330,11 @@ sub parse_summary {
 
     my $content = $args{content};
     my $summary = '';
-    if ($content =~ /<div class="summary"[^>]*>[\w\s]*<br \/>\s*<i>\s*(.*?)<\/i>\s*<\/div>/s)
+    if ($content =~ m{<div class="summary" align = "center">Rating: \w+<br />\s*<i>([^<]+)</i></div>}s)
+    {
+	$summary = $1;
+    }
+    elsif ($content =~ /<div class="summary"[^>]*>[\w\s]*<br \/>\s*<i>\s*(.*?)<\/i>\s*<\/div>/s)
     {
 	$summary = $1;
     }
