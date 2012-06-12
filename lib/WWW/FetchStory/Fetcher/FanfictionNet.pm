@@ -445,6 +445,7 @@ sub parse_title {
     {
 	$title = $self->SUPER::parse_title(%args);
     }
+    $title =~ s/\s+$//;
     return $title;
 } # parse_title
 
