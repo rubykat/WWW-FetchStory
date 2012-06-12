@@ -437,7 +437,7 @@ sub parse_title {
     {
 	$title = $1;
     }
-    elsif ($content =~ m#<title>([^<]+)Chapter[^<]+</title>#is)
+    elsif ($content =~ m#<title>([^<]+)\s*Chapter[^<]+</title>#is)
     {
 	$title = $1;
     }
