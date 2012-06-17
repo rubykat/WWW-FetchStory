@@ -159,12 +159,18 @@ sub parse_chapter_urls {
 	@chapters = ();
 	# PetulantPoetess does not have a sane chapter system
 	my $fmt = 'http://www.thepetulantpoetess.com/viewstory.php?action=printable&sid=%d';
+        my $prev_sid = '';
 	while ($content =~ m#viewstory.php\?sid=(\d+)#sg)
 	{
 	    my $ch_sid = $1;
-	    my $ch_url = sprintf($fmt, $ch_sid);
-	    warn "chapter=$ch_url\n" if ($self->{verbose} > 1);
-	    push @chapters, $ch_url;
+            # single-chapter stories end up with the same url multiple times
+            if ($ch_sid ne $prev_sid)
+            {
+                my $ch_url = sprintf($fmt, $ch_sid);
+                warn "chapter=$ch_url\n" if ($self->{verbose} > 1);
+                push @chapters, $ch_url;
+                $prev_sid = $ch_sid;
+            }
 	}
     }
 
