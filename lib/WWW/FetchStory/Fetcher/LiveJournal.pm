@@ -334,7 +334,15 @@ sub parse_title {
 
     my $content = $args{content};
     my $title = '';
-    if ($content =~ m#<title>[\w]+:\s*([^<]+)</title>#s)
+    if ($content =~ /<(?:b|strong)>Title:?\s*<\/(?:b|strong)>:?\s*"?(.*?)"?\s*<(?:br|p|\/p|div|\/div)/si)
+    {
+	$title = $1;
+    }
+    elsif ($content =~ /\bTitle:\s*"?(.*?)"?\s*<br/s)
+    {
+	$title = $1;
+    }
+    elsif ($content =~ m#<title>[\w]+:\s*([^<]+)</title>#s)
     {
 	$title = $1;
     }
@@ -351,14 +359,6 @@ sub parse_title {
 	$title = $2;
     }
     elsif ($content =~ m#<div class="subject">([^<]+)</div>#)
-    {
-	$title = $1;
-    }
-    elsif ($content =~ /<(?:b|strong)>Title:?\s*<\/(?:b|strong)>:?\s*"?(.*?)"?\s*<(?:br|p|\/p|div|\/div)/si)
-    {
-	$title = $1;
-    }
-    elsif ($content =~ /\bTitle:\s*"?(.*?)"?\s*<br/s)
     {
 	$title = $1;
     }
