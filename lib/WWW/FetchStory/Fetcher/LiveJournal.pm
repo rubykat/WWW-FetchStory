@@ -243,6 +243,7 @@ sub extract_story {
         $story =~ s#<center><div class="lj-like">.*</center>##sg;
         $story =~ s#<wbr>##sg;
         $story =~ s#</wbr>##sg;
+        $story =~ s#<wbr/>##sg;
 
         # Clean unwanted MS-Word HTML
         $story =~ s#<!--\[if gte mso \d*\]>.*?<!\[endif\]-->##sg;
