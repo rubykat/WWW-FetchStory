@@ -107,6 +107,10 @@ sub extract_story {
     {
 	$title = $1;
     }
+    elsif ($content =~ m#<title>([^<]+)</title>#s)
+    {
+	$title = $1;
+    }
     elsif ($content =~ m#<h2 class="asset-name page-header2"><a href="([^"]+)">([^>]+)</a></h2>#)
     {
 	$url = $1;
@@ -116,29 +120,18 @@ sub extract_story {
     {
 	$title = $1;
     }
-    elsif ($content =~ m#<title>([^<]+)</title>#s)
-    {
-	$title = $1;
-    }
     if ($content =~ m#([-\w]+)</b></a></span>\) wrote in <span class='ljuser'#s)
     {
 	$ljuser = $1;
     }
 
-    my $year = '';
-    my $month = '';
-    my $day = '';
-    if ($content =~ m#wrote,<br /><font[^>]+>\@\s*<a href="[^"]+">(\d+)</a>-<a href="[^"]+">(\d+)</a>-<a href="[^"]+">(\d+)</a>#s)
-    {
-	$year = $1;
-	$month = $2;
-	$day = $3;
-	warn "year=$year,month=$month,day=$day\n" if ($self->{verbose} > 1);
-    }
-
     if (!$url)
     {
-	if ($content =~ m#<a[^>]*href=["']([^?\s]+)\?mode=reply["']\s*>Post a new comment#s)
+        if ($content =~ m#(http://[-\w]+.livejournal.com/\d+\.html)\?format=light\&mode=reply#s)
+        {
+	    $url = $1;
+        }
+	elsif ($content =~ m#<a[^>]*href=["']([^?\s]+)\?mode=reply["']\s*>Post a new comment#s)
 	{
 	    $url = $1;
 	}
@@ -157,7 +150,11 @@ sub extract_story {
     }
 
     my $story = '';
-    if ($content =~ m#</table><p>(.*)<br[^>]*/><hr[^>]*/><div id='Comments'>#s)
+    if ($content =~ m#<div class="b-singlepost-body">(.*?)<div id="comments"#s)
+    {
+	$story = $1;
+    }
+    elsif ($content =~ m#</table><p>(.*)<br[^>]*/><hr[^>]*/><div id='Comments'>#s)
     {
 	$story = $1;
     }
@@ -241,6 +238,7 @@ sub extract_story {
 	$story = $self->tidy_chars($story);
 	# remove cutid1
 	$story =~ s#<a name="cutid."></a>##sg;
+        $story =~ s#<a name='cutid.-end'></a>##sg;
     }
     else
     {
@@ -250,8 +248,20 @@ sub extract_story {
 
     my $out = <<EOT;
 <h1>$title</h1>
+EOT
+    if ($ljuser)
+    {
+        $out .= <<EOT;
 <p>by $ljuser</p>
-<p>$year-$month-$day (from <a href='$url'>here</a>)</p>
+EOT
+    }
+    if ($url)
+    {
+        $out .= <<EOT;
+<p>(from <a href='$url'>here</a>)</p>
+EOT
+    }
+        $out .= <<EOT;
 <p>$story
 EOT
     return ($out, $title);
@@ -295,6 +305,61 @@ sub parse_author {
     }
     return $author;
 } # parse_author
+
+=head2 parse_title
+
+Get the title from the content
+
+=cut
+sub parse_title {
+    my $self = shift;
+    my %args = (
+	content=>'',
+	@_
+    );
+
+    my $content = $args{content};
+    my $title = '';
+    if ($content =~ m#<title>[\w]+:\s*([^<]+)</title>#s)
+    {
+	$title = $1;
+    }
+    elsif ($content =~ m#<h1 class="b-singlepost-title">\s*([^<]+)\s*</h1>#s)
+    {
+	$title = $1;
+    }
+    elsif ($content =~ m#<title>([^<]+)</title>#s)
+    {
+	$title = $1;
+    }
+    elsif ($content =~ m#<h2 class="asset-name page-header2"><a href="([^"]+)">([^>]+)</a></h2>#)
+    {
+	$title = $2;
+    }
+    elsif ($content =~ m#<div class="subject">([^<]+)</div>#)
+    {
+	$title = $1;
+    }
+    elsif ($content =~ /<(?:b|strong)>Title:?\s*<\/(?:b|strong)>:?\s*"?(.*?)"?\s*<(?:br|p|\/p|div|\/div)/si)
+    {
+	$title = $1;
+    }
+    elsif ($content =~ /\bTitle:\s*"?(.*?)"?\s*<br/s)
+    {
+	$title = $1;
+    }
+    elsif ($content =~ m#<h1>([^<]+)</h1>#is)
+    {
+	$title = $1;
+    }
+    elsif ($content =~ m#<h2>([^<]+)</h2>#is)
+    {
+	$title = $1;
+    }
+    $title =~ s/<u>//ig;
+    $title =~ s/<\/u>//ig;
+    return $title;
+} # parse_title
 
 =head2 parse_toc
 
