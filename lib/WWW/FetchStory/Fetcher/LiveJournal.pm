@@ -235,25 +235,12 @@ sub extract_story {
     warn "url=$url\n" if ($self->{verbose} > 1);
     if ($story)
     {
-	$story = $self->tidy_chars($story);
-	# remove cutid1
+	# remove LJ-specific cruft
 	$story =~ s#<a name="cutid."></a>##sg;
         $story =~ s#<a name='cutid.-end'></a>##sg;
-        # remove other cruft
         $story =~ s#<center><div class="lj-like">.*</center>##sg;
-        $story =~ s#<wbr>##sg;
-        $story =~ s#</wbr>##sg;
-        $story =~ s#<wbr/>##sg;
 
-        # Clean unwanted MS-Word HTML
-        $story =~ s#<!--\[if gte mso \d*\]>.*?<!\[endif\]-->##sg;
-        $story =~ s#<!--\[if !mso\]>.*?<!\[endif\]-->##sg;
-        $story =~ s!<[/]?(font|span|xml|del|ins|[ovwxp]:\w+|st\d:\w+)[^>]*?>!!igs;
-        $story =~ s!<([^>]*)(?:lang|style|size|face|[ovwxp]:\w+)=(?:'[^']*'|""[^""]*""|[^\s>]+)([^>]*)>!<$1$2>!isg;
-	$story =~ s/\s*class="Banner[0-9]+"//g;
-	$story =~ s/\s*class="Textbody"//g;
-	$story =~ s/\s*class="MsoNormal"//g;
-	$story =~ s/\s*class="MsoBodyText"//g;
+	$story = $self->tidy_chars($story);
     }
     else
     {

@@ -1614,6 +1614,22 @@ sub tidy_chars {
     # replace double-breaks with <p>
     $string =~ s#<br\s*\/?>\s*<br\s*\/?>#\n<p>#sg;
 
+    # remove other cruft
+    $string =~ s#<wbr>##sg;
+    $string =~ s#</wbr>##sg;
+    $string =~ s#<wbr/>##sg;
+    $string =~ s#<nobr>##sg;
+
+    # Clean unwanted MS-Word HTML
+    $string =~ s#<!--\[if gte mso \d*\]>.*?<!\[endif\]-->##sg;
+    $string =~ s#<!--\[if !mso\]>.*?<!\[endif\]-->##sg;
+    $string =~ s!<[/]?(font|span|xml|del|ins|[ovwxp]:\w+|st\d:\w+)[^>]*?>!!igs;
+    $string =~ s!<([^>]*)(?:lang|style|size|face|[ovwxp]:\w+)=(?:'[^']*'|""[^""]*""|[^\s>]+)([^>]*)>!<$1$2>!isg;
+    $string =~ s/\s*class="Banner[0-9]+"//g;
+    $string =~ s/\s*class="Textbody"//g;
+    $string =~ s/\s*class="MsoNormal"//g;
+    $string =~ s/\s*class="MsoBodyText"//g;
+
     return $string;
 } # tidy_chars
 
