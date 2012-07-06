@@ -459,6 +459,11 @@ sub parse_chapter_urls {
     my $content = $args{content};
     my $user = $args{user};
     my @chapters = ();
+
+    # avoid adding duplicate URLs by remembering what we've parsed
+    my %remember_ch_urls = ();
+    $remember_ch_urls{$args{url}} = 1;
+
     if (defined $args{urls})
     {
 	@chapters = @{$args{urls}};
@@ -475,10 +480,11 @@ sub parse_chapter_urls {
 	    while ($content =~ m/href="(http:\/\/community\.livejournal\.com\/${user}\/\d+.html)(#cutid\d)?">/sg)
 	    {
 		my $ch_url = $1;
-		if ($ch_url ne $args{url})
+		if (!$remember_ch_urls{$ch_url})
 		{
 		    warn "chapter=$ch_url\n" if ($self->{verbose} > 1);
 		    push @chapters, "${ch_url}?format=light";
+                    $remember_ch_urls{$ch_url} = 1;
 		}
 	    }
 	}
@@ -487,10 +493,11 @@ sub parse_chapter_urls {
 	    while ($content =~ m/href="(http:\/\/${user}\.livejournal\.com\/\d+.html)(#cutid\d)?">/sg)
 	    {
 		my $ch_url = $1;
-		if ($ch_url ne $args{url})
+		if (!$remember_ch_urls{$ch_url})
 		{
 		    warn "chapter=$ch_url\n" if ($self->{verbose} > 1);
 		    push @chapters, "${ch_url}?format=light";
+                    $remember_ch_urls{$ch_url} = 1;
 		}
 	    }
 	}
