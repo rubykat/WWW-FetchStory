@@ -235,7 +235,7 @@ sub parse_toc {
     {
 	$info{author} = $self->parse_author(%args);
     }
-    # the summary is on the Author page!
+    # The summary is on the Author page!
     if ($auth_url && $sid)
     {
 	my $auth_page = $self->get_page("http://www.fanfiction.net${auth_url}");
@@ -265,6 +265,8 @@ sub parse_toc {
     $info{characters} = $self->parse_characters(%args,content=>$mob_page);
     $info{category} = $self->parse_category(%args,content=>$mob_page);
     $info{universe} = $self->parse_universe(%args,content=>$mob_page);
+
+    # this needs the non-mobile version
     $info{chapters} = $self->parse_chapter_urls(%args,
 	sid=>$sid, mob_url=>$mob_url);
 
@@ -295,34 +297,27 @@ sub parse_chapter_urls {
 	}
     }
 
-    if (@chapters == 1)
+    if (@chapters == 0 or @chapters == 1)
     {
 	# fortunately fanfiction.net has a sane-ish chapter system
-	# find the chapter from the chapter selection form
-	if ($content =~ m#<SELECT title='chapter\snavigation'\sName=chapter(.*?)</select>#is
-            or $content =~ m#<SELECT id=chap_select title='chapter navigation' Name=chapter(.*?)</select>#is)
-	{
-	    @chapters = ();
-	    my $ch_select = $1;
-	    if ($ch_select =~ m/<option\s*value=(\d+)\s*>[^<]+$/s)
-	    {
-		my $num_ch = $1;
-		my $fmt = $args{url};
-		$fmt =~ s/www/m/;
-		$fmt =~ s!/\d+/\d+/!/%d/\%d/!;
-		for (my $i=1; $i <= $num_ch; $i++)
-		{
-		    my $ch_url = sprintf($fmt, $sid, $i);
-		    warn "chapter=$ch_url\n" if ($self->{verbose} > 1);
-		    push @chapters, $ch_url;
-		}
-	    }
-	    else
-	    {
-		warn "ch_select=$ch_select";
-		@chapters = ($args{mob_url});
-	    }
-	}
+        if ($content =~ m#-\s+Chapters:\s+(\d+)\s+-\s+Words:\s+[\d,]+\s+-\s+Updated:#is)
+        {
+            @chapters = ();
+            my $num_chapters = $1;
+            my $fmt = $args{url};
+            $fmt =~ s/www/m/;
+            $fmt =~ s!/\d+/\d+/!/%d/\%d/!;
+            for (my $i=1; $i <= $num_chapters; $i++)
+            {
+                my $ch_url = sprintf($fmt, $sid, $i);
+                warn "chapter=$ch_url\n" if ($self->{verbose} > 1);
+                push @chapters, $ch_url;
+            }
+        }
+        else
+        {
+            @chapters = ($args{mob_url});
+        }
     }
 
     return \@chapters;
