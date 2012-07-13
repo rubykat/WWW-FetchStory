@@ -300,10 +300,10 @@ sub parse_chapter_urls {
     if (@chapters == 0 or @chapters == 1)
     {
 	# fortunately fanfiction.net has a sane-ish chapter system
-        if ($content =~ m#-\s+Chapters:\s+(\d+)\s+-\s+Words:\s+[\d,]+\s+-\s+Updated:#is)
+        if ($content =~ m#-\s+Chapters:\s+(\d+)\s+-\s+Words:\s+[\d,]#is)
         {
-            @chapters = ();
             my $num_chapters = $1;
+            @chapters = ();
             my $fmt = $args{url};
             $fmt =~ s/www/m/;
             $fmt =~ s!/\d+/\d+/!/%d/\%d/!;
