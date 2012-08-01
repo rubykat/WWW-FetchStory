@@ -474,12 +474,12 @@ sub parse_chapter_urls {
 	    $chapters[$i] = sprintf('%s?format=light', $chapters[$i]);
 	}
     }
-    if (@chapters == 1 and $user)
+    if (@chapters <= 1 and $user)
     {
-	warn "user=$user\n" if ($self->{verbose} > 1);
+	warn "parse_chapter_urls: user=$user\n" if ($self->{verbose} > 1);
 	if ($args{is_community})
 	{
-	    while ($content =~ m/href="(http:\/\/community\.livejournal\.com\/${user}\/\d+.html)(#cutid\d)?">/sg)
+	    while ($content =~ m/href="(http:\/\/community\.livejournal\.com\/${user}\/\d+.html)/sg)
 	    {
 		my $ch_url = $1;
 		if (!$remember_ch_urls{$ch_url})
@@ -492,12 +492,12 @@ sub parse_chapter_urls {
 	}
 	else
 	{
-	    while ($content =~ m/href="(http:\/\/${user}\.livejournal\.com\/\d+.html)(#cutid\d)?">/sg)
+	    while ($content =~ m/href="(http:\/\/${user}\.livejournal\.com\/\d+.html)/sg)
 	    {
 		my $ch_url = $1;
-		if (!$remember_ch_urls{$ch_url})
+                warn "chapter=$ch_url\n" if ($self->{verbose} > 1);
+                if (!$remember_ch_urls{$ch_url})
 		{
-		    warn "chapter=$ch_url\n" if ($self->{verbose} > 1);
 		    push @chapters, "${ch_url}?format=light";
                     $remember_ch_urls{$ch_url} = 1;
 		}
