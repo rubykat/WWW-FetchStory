@@ -81,6 +81,7 @@ sub init {
 	$self->{user_agent} = LWP::UserAgent->new(
 	    keep_alive => 1,
 	    env_proxy => 1,
+            agent => ref $self,
 	);
 	$self->{user_agent}->show_progress($self->{verbose} > 0);
 	if ($self->{firefox_cookies} and -f $self->{firefox_cookies})
