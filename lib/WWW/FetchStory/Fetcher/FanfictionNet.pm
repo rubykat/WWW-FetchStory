@@ -128,7 +128,11 @@ sub extract_story {
     warn "chapter=$chapter\n" if ($self->{verbose} > 1);
 
     my $story = '';
-    if ($content =~ m#class='storycontent puretext' id='storycontent'\s*>(.*?)\s*</div>\s*</div>\s*<div id='content' class='puretext'>#s)
+    if ($content =~ m#class='storycontent' id='storycontent'\s*>(.*?)\s*<center>.*?Ch \d+ of <a href='[^']+'>\d+</a>.*?<br>\s*<span class='xbut corner_round'>#s)
+    {
+	$story = $1;
+    }
+    elsif ($content =~ m#class='storycontent puretext' id='storycontent'\s*>(.*?)\s*</div>\s*</div>\s*<div id='content' class='puretext'>#s)
     {
 	$story = $1;
     }
