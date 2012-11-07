@@ -148,6 +148,10 @@ sub extract_story {
     {
 	$story = $1;
     }
+    elsif ($content =~ m#<div id='entrysubj'>(.*?)<div role="navigation">#s)
+    {
+	$story = $1;
+    }
     elsif ($content =~ m#<div class="entry"[^>]*>(.*?)<div class="tag">#s)
     {
 	$story = $1;
@@ -328,6 +332,33 @@ sub parse_chapter_urls {
 
     return \@chapters;
 } # parse_chapter_urls
+
+=head2 parse_author
+
+Get the author from the content
+
+=cut
+sub parse_author {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+
+    my $content = $args{content};
+    my $author = $self->SUPER::parse_author(%args);
+
+    if ($author =~ m#<span lj:user='\w+' style='white-space: nowrap;' class='ljuser'><a href='http://www\.dreamwidth\.org/profile\?user=\w+'><img src='http://www\.dreamwidth\.org/img/silk/identity/user\.png' alt='\[profile\] ' width='17' height='17' style='vertical-align: text-bottom; border: 0; padding-right: 1px;' /></a><a href='http://www\.dreamwidth\.org/profile\?user=\w+'><b>(.*?)</b></a></span>#)
+    {
+	$author = $1;
+    }
+    elsif ($author =~ m#<a href='http://[-\w]+\.dreamwidth\.org/'><b>(.*?)</b></a>#)
+    {
+	$author = $1;
+    }
+    return $author;
+} # parse_author
 
 1; # End of WWW::FetchStory::Fetcher::Dreamwidth
 __END__
