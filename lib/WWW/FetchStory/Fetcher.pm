@@ -1310,6 +1310,11 @@ sub wordcount {
     my @words = split(' ', $stripped);
     my $wordcount = @words;
     my $chars = length($stripped);
+    if ($self->{debug})
+    {
+        my $orig_length = length($args{content});
+        print "orig_length=$orig_length, words=$wordcount, chars=$chars\n";
+    }
     return (
 	words=>$wordcount,
 	chars=>$chars,
