@@ -7,7 +7,7 @@ fetch_story - fetch a story from the internet
 
 fetch_story [ --help | --manpage | --list ]
 
-fetch_story [ --basename I<string> ] [ --firefox_cookies I<filename> | --wget_cookies I<filename> ] [ --toc | --epub ] [ --use_wget ] [ --yaml ] I<url> [ I<url> ] ...
+fetch_story [ --basename I<string> ] [ --firefox_cookies I<filename> | --wget_cookies I<filename> ] [ --first_is_toc ] [ --toc | --epub ] [ --use_wget ] [ --yaml ] I<url> [ I<url> ] ...
 
 =head1 DESCRIPTION
 
@@ -136,6 +136,7 @@ sub process_args ($) {
 	       'wget_cookies=s',
 	       'list',
 	       'toc!',
+               'first_is_toc!',
 	       'epub!',
 	       'yaml!',
 	       'use_wget!',
