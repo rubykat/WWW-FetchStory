@@ -234,10 +234,11 @@ sub parse_toc {
     }
     $info{title} = $self->parse_title(%args);
     my $auth_url = '';
-    if ($content =~ m#<a href='(/u/\d+/[-\w]+)'>([^<]+)</a>#s)
+    if ($content =~ m#href='(/u/\d+/[-\w]+)'>([^<]+)</a>#s)
     {
 	$auth_url = $1;
 	$info{author} = $2;
+        warn "author from URL=$info{author}\n" if ($self->{verbose} > 1);
     }
     else
     {
@@ -264,7 +265,6 @@ sub parse_toc {
     {
 	$info{summary} = $self->parse_summary(%args);
     }
-
 
     # get the mobile version of the page in order to parse the other stuff
     my $mob_url = $args{url};
