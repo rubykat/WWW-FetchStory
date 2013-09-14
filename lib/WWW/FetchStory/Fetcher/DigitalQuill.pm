@@ -70,7 +70,7 @@ sub allow {
     my $self = shift;
     my $url = shift;
 
-    return ($url =~ /www\.digital-quill\.org$/);
+    return ($url =~ /www\.digital-quill\.org/);
 } # allow
 
 =head1 Private Methods
