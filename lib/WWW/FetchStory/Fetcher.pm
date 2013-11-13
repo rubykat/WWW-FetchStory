@@ -1559,25 +1559,6 @@ sub tidy_chars {
     zap_cp1252($string);
 
     my %replace_map = (
-        'â€š' => ',',     # 82, SINGLE LOW-9 QUOTATION MARK
-        'â€ž' => ',,',    # 84, DOUBLE LOW-9 QUOTATION MARK
-        'â€¦' => '...',   # 85, HORIZONTAL ELLIPSIS
-        'Ë†' => '^',     # 88, MODIFIER LETTER CIRCUMFLEX ACCENT
-        'â€˜' => '`',     # 91, LEFT SINGLE QUOTATION MARK
-        'â€™' => "'",     # 92, RIGHT SINGLE QUOTATION MARK
-        'â€œ' => '"',     # 93, LEFT DOUBLE QUOTATION MARK
-        'â€' => '"',     # 94, RIGHT DOUBLE QUOTATION MARK
-        'â€¢' => '*',     # 95, BULLET
-        'â€“' => '-',     # 96, EN DASH
-        'â€”' => '-',     # 97, EM DASH
-        'â€¹' => '<',     # 8B, SINGLE LEFT-POINTING ANGLE QUOTATION MARK
-        'â€º' => '>',     # 9B, SINGLE RIGHT-POINTING ANGLE QUOTATION MARK
-	'âe\(tm\)' => "'",
-	'âeoe' => '"',
-	'âe' => '"',
-	'âe~' => "'",
-	'âe¦' => '...',
-	'âe"' => '--',
 	'\302' => '',
 	'\240' => ' ',
 	);
