@@ -150,7 +150,11 @@ sub extract_story {
     }
 
     my $story = '';
-    if ($content =~ m#<div class="b-singlepost-body">(.*?)<div id="comments"#s)
+    if ($content =~ m#<article class="b-singlepost-body">(.*?)<div class="b-singlepost-tags ljtags">#s)
+    {
+	$story = $1;
+    }
+    elsif ($content =~ m#<div class="b-singlepost-body">(.*?)<div id="comments"#s)
     {
 	$story = $1;
     }
@@ -295,15 +299,22 @@ sub parse_author {
     );
 
     my $content = $args{content};
-    my $author = $self->SUPER::parse_author(%args);
-
-    if ($author =~ m#<span class='ljuser ljuser-name_\w+' lj:user='\w+' style='white-space: nowrap;'><a href='http://\w+\.livejournal\.com/profile'><img src='http://l-stat\.livejournal\.com/img/userinfo\.gif' alt='\[info\]' width='17' height='17' style='vertical-align: bottom; border: 0; padding-right: 1px;' /></a><a href='http://\w+\.livejournal\.com/'><b>(.*?)</b></a></span>#)
+    my $author = '';
+    if ($content =~ m#<b>Author: </b> <span\s+class="ljuser\s+i-ljuser\s+"\s+lj:user="([-_\w]+)"#)
+    {
+        $author = $1;
+    }
+    elsif ($content =~ m#<span class='ljuser ljuser-name_\w+' lj:user='\w+' style='white-space: nowrap;'><a href='http://\w+\.livejournal\.com/profile'><img src='http://l-stat\.livejournal\.com/img/userinfo\.gif' alt='\[info\]' width='17' height='17' style='vertical-align: bottom; border: 0; padding-right: 1px;' /></a><a href='http://\w+\.livejournal\.com/'><b>(.*?)</b></a></span>#)
     {
 	$author = $1;
     }
-    elsif ($author =~ m#<a href='http://[-\w]+\.livejournal\.com/'><b>(.*?)</b></a>#)
+    elsif ($content =~ m#<a href='http://[-\w]+\.livejournal\.com/'><b>(.*?)</b></a>#)
     {
 	$author = $1;
+    }
+    else
+    {
+        $author = $self->SUPER::parse_author(%args);
     }
     return $author;
 } # parse_author
@@ -492,15 +503,23 @@ sub parse_chapter_urls {
 	}
 	else
 	{
-	    while ($content =~ m/href="(http:\/\/${user}\.livejournal\.com\/\d+.html)/sg)
+	    while ($content =~ m/<a\s+href="(http:\/\/${user}\.livejournal\.com\/\d+.html")\s*([^>]*)>/sg)
 	    {
 		my $ch_url = $1;
-                warn "chapter=$ch_url\n" if ($self->{verbose} > 1);
-                if (!$remember_ch_urls{$ch_url})
-		{
-		    push @chapters, "${ch_url}?format=light";
-                    $remember_ch_urls{$ch_url} = 1;
-		}
+                my $rest = $2;
+                if ($rest =~ /prevnext-link/)
+                {
+                    # it's a prev-next link, ignore it
+                }
+                else
+                {
+                    warn "chapter=$ch_url\n" if ($self->{verbose} > 1);
+                    if (!$remember_ch_urls{$ch_url})
+                    {
+                        push @chapters, "${ch_url}?format=light";
+                        $remember_ch_urls{$ch_url} = 1;
+                    }
+                }
 	    }
 	}
     }
