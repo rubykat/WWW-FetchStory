@@ -904,7 +904,7 @@ sub parse_recipient {
 
     my $content = $args{content};
     my $recipient = '';
-    if ($content =~ m#Recipient: (\w+)#is)
+    if ($content =~ m#(?:Recipient|Prompter): (\w+)#is)
     {
 	$recipient = $1;
     }

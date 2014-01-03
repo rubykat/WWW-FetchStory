@@ -304,6 +304,10 @@ sub parse_author {
     {
         $author = $1;
     }
+    elsif ($content =~ m#<b>Creator:\s*</b>\s*<span\s+class="ljuser\s+i-ljuser\s+"\s+lj:user="([-_\w]+)"#)
+    {
+        $author = $1;
+    }
     elsif ($content =~ m#<span class='ljuser ljuser-name_\w+' lj:user='\w+' style='white-space: nowrap;'><a href='http://\w+\.livejournal\.com/profile'><img src='http://l-stat\.livejournal\.com/img/userinfo\.gif' alt='\[info\]' width='17' height='17' style='vertical-align: bottom; border: 0; padding-right: 1px;' /></a><a href='http://\w+\.livejournal\.com/'><b>(.*?)</b></a></span>#)
     {
 	$author = $1;
