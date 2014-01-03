@@ -163,7 +163,7 @@ sub parse_chapter_urls {
     }
     if (@chapters == 1)
     {
-	while ($content =~ m/href=["'](http:\/\/sshg[-_]pf[-_](?:mod|fanworks)\.livejournal\.com\/\d+.html)/sg)
+	while ($content =~ m/href=["'](http:\/\/sshg[-_]pf[-_](?:mod|fanwork)\.livejournal\.com\/\d+.html)/sg)
 	{
 	    my $ch_url = $1;
 	    warn "chapter=$ch_url\n" if ($self->{verbose} > 1);
