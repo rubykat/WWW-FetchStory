@@ -1,13 +1,13 @@
-package WWW::FetchStory::Fetcher::SSHGExchange;
+package WWW::FetchStory::Fetcher::SSHGPromptfest;
 use strict;
 use warnings;
 =head1 NAME
 
-WWW::FetchStory::Fetcher::SSHGExchange - fetching module for WWW::FetchStory
+WWW::FetchStory::Fetcher::SSHGPromptfest - fetching module for WWW::FetchStory
 
 =head1 DESCRIPTION
 
-This is the SSHGExchange story-fetching plugin for WWW::FetchStory.
+This is the SSHGPromptfest story-fetching plugin for WWW::FetchStory.
 
 =cut
 
@@ -174,5 +174,5 @@ sub parse_chapter_urls {
     return \@chapters;
 } # parse_chapter_urls
 
-1; # End of WWW::FetchStory::Fetcher::SSHGExchange
+1; # End of WWW::FetchStory::Fetcher::SSHGPromptfest
 __END__
