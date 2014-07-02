@@ -150,7 +150,7 @@ sub extract_story {
     }
 
     my $story = '';
-    if ($content =~ m#<article class="b-singlepost-body">(.*?)<div class="b-singlepost-tags ljtags">#s)
+    if ($content =~ m#<article class="b-singlepost-body"[^>]*>(.*?)<div class="\s*b-singlepost-tags ljtags\s*"#s)
     {
 	$story = $1;
     }
@@ -243,6 +243,7 @@ sub extract_story {
 	$story =~ s#<a name="cutid."></a>##sg;
         $story =~ s#<a name='cutid.-end'></a>##sg;
         $story =~ s#<center><div class="lj-like">.*</center>##sg;
+        $story =~ s#<a href="http://[A-Za-z_-]+\.livejournal\.com/profile"[^>]*>\s*<img\s*class="i-ljuser-userhead"[^>]*/>\s*</a>##sg;
 
 	$story = $self->tidy_chars($story);
     }
@@ -255,16 +256,10 @@ sub extract_story {
     my $out = <<EOT;
 <h1>$title</h1>
 EOT
-    if ($ljuser)
-    {
-        $out .= <<EOT;
-<p>by $ljuser</p>
-EOT
-    }
     if ($url)
     {
         $out .= <<EOT;
-<p>(from <a href='$url'>here</a>)</p>
+<p>(from <a href='$url'>$url</a>)</p>
 EOT
     }
         $out .= <<EOT;
