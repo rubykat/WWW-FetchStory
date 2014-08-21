@@ -264,6 +264,12 @@ sub parse_summary {
     {
 	$summary = $self->SUPER::parse_summary(%args);
     }
+    # AO3 tends to have messy HTML stuff stuck in the summary
+    $summary =~ s!&lt;[a-zA-Z]&gt;!!g;
+    $summary =~ s!&lt;/[a-zA-Z]&gt;!!g;
+    $summary =~ s!<\w+>!!g;
+    $summary =~ s!</\w+>!!g;
+    $summary =~ s!&#x27;!'!g;
     return $summary;
 } # parse_summary
 
