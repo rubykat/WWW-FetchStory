@@ -1,4 +1,5 @@
 package WWW::FetchStory::Fetcher::AO3;
+
 use strict;
 use warnings;
 =head1 NAME

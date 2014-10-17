@@ -1,4 +1,5 @@
 package WWW::FetchStory::Fetcher::SSHGExchange;
+
 use strict;
 use warnings;
 =head1 NAME

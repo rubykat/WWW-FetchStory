@@ -1,4 +1,5 @@
 package WWW::FetchStory::Fetcher::Teaspoon;
+
 use strict;
 use warnings;
 =head1 NAME

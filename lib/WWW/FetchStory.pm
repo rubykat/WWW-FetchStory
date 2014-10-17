@@ -1,6 +1,8 @@
 use strict;
 use warnings;
+
 package WWW::FetchStory;
+
 =head1 NAME
 
 WWW::FetchStory - Fetch a story from a fiction website

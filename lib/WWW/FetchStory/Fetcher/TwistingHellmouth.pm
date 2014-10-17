@@ -1,4 +1,5 @@
 package WWW::FetchStory::Fetcher::TwistingHellmouth;
+
 use strict;
 use warnings;
 =head1 NAME

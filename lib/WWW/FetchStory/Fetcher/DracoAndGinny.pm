@@ -1,4 +1,5 @@
 package WWW::FetchStory::Fetcher::DracoAndGinny;
+
 use strict;
 use warnings;
 =head1 NAME
