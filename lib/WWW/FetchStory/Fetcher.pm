@@ -93,7 +93,7 @@ sub init {
 		hide_cookie2 => 1,
 		ignore_discard => 1,
 	    );
-	    print "\n--------------\n", $cookies->as_string, "\n------------\n" if ($self->{debug} > 1);
+	    print "\n--------------\n", $cookies->as_string, "\n------------\n" if ($self->{debug} && $self->{debug} > 1);
 	    $self->{user_agent}->cookie_jar( $cookies );
 	}
 	elsif ($self->{wget_cookies} and -f $self->{wget_cookies})
@@ -103,7 +103,7 @@ sub init {
 		hide_cookie2 => 1,
 		ignore_discard => 1,
 	    );
-	    print "\n--------------\n", $cookies->as_string, "\n------------\n" if ($self->{debug} > 1);
+	    print "\n--------------\n", $cookies->as_string, "\n------------\n" if ($self->{debug} && $self->{debug} > 1);
 	    $self->{user_agent}->cookie_jar( $cookies );
 	}
 	if ($self->{debug})
