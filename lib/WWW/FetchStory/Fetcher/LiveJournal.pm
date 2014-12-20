@@ -151,7 +151,11 @@ sub extract_story {
     }
 
     my $story = '';
-    if ($content =~ m#<article class="b-singlepost-body"[^>]*>(.*?)<div class="\s*b-singlepost-tags ljtags\s*"#s)
+    if ($content =~ m#<article class="\s*b-singlepost-body[^>]*>(.*?)</article>#s)
+    {
+	$story = $1;
+    }
+    elsif ($content =~ m#<article class="\s*b-singlepost-body[^>]*>(.*?)<div class="\s*b-singlepost-tags ljtags\s*"#s)
     {
 	$story = $1;
     }
@@ -251,6 +255,7 @@ sub extract_story {
     else
     {
 	print STDERR "story not found\n";
+        print STDERR "\n==============\n${content}\n===========\n" if ($self->{debug});
 	return $self->tidy_chars($content);
     }
 
@@ -503,7 +508,7 @@ sub parse_chapter_urls {
 	}
 	else
 	{
-	    while ($content =~ m/<a\s+href="(http:\/\/${user}\.livejournal\.com\/\d+.html")\s*([^>]*)>/sg)
+	    while ($content =~ m/<a\s+href="(http:\/\/${user}\.livejournal\.com\/\d+.html)"\s*([^>]*)>/sg)
 	    {
 		my $ch_url = $1;
                 my $rest = $2;
@@ -513,7 +518,7 @@ sub parse_chapter_urls {
                 }
                 else
                 {
-                    warn "chapter=$ch_url\n" if ($self->{verbose} > 1);
+                    warn "chapter='$ch_url'\n" if ($self->{verbose} > 1);
                     if (!$remember_ch_urls{$ch_url})
                     {
                         push @chapters, "${ch_url}?format=light";
