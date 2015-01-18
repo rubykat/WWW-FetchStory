@@ -305,7 +305,18 @@ sub parse_characters {
     my $content = $args{content};
 
     my $characters = '';
-    if ($content =~ m!^Characters: (.*?)$!m)
+    if ($content =~ m!<dd class="character tags">(.*?)</dd>!s)
+    {
+        # multiple characters inside links
+        my $str = $1;
+        my @chars = ();
+        while ($str =~ m!([^><]+)</a>!g)
+        {
+            push @chars, $1;
+        }
+        $characters = join(', ', @chars);
+    }
+    elsif ($content =~ m!^Characters: (.*?)$!m)
     {
 	$characters = $1;
     }
