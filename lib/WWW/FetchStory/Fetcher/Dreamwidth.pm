@@ -2,7 +2,6 @@ package WWW::FetchStory::Fetcher::Dreamwidth;
 
 use strict;
 use warnings;
-
 =head1 NAME
 
 WWW::FetchStory::Fetcher::Dreamwidth - fetching module for WWW::FetchStory
