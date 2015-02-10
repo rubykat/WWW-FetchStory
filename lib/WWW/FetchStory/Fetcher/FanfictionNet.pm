@@ -160,7 +160,7 @@ sub extract_story {
     if ($story)
     {
 	$out .= "<h1>$story_title</h1>\n";
-	$out .= "<p>by $author</p>\n";
+	$out .= "<p>by $author</p>\n" if $author;
 	$out .= "<br/>\n<b>Universe:</b> $universe\n" if $universe;
 	$out .= "<div>\n";
 	$out .= "$story\n";
