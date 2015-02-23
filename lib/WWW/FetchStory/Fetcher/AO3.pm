@@ -137,7 +137,7 @@ sub parse_toc {
     $info{category} = $self->parse_category(%args);
     $info{rating} = $self->parse_rating(%args);
     $info{chapters} = $self->parse_chapter_urls(%args, sid=>$sid);
-    $info{epub_url} = $self->parse_epub_url(%args, sid=>$sid);
+    #$info{epub_url} = $self->parse_epub_url(%args, sid=>$sid);
     $info{wordcount} = $self->parse_wordcount(%args);
 
     return %info;
@@ -163,7 +163,7 @@ sub parse_chapter_urls {
 	@chapters = @{$args{urls}};
     }
     if (@chapters == 1
-	    and $content =~ m!href="(/downloads/[-\/\w]+/$sid/[^.]+\.html)"!)
+	    and $content =~ m!href="(/downloads/[-\/\w]+/$sid/[^.]+\.html)!)
     {
 	@chapters = ("http://archiveofourown.org$1");
     }
@@ -186,7 +186,7 @@ sub parse_epub_url {
     my $content = $args{content};
     my $sid = $args{sid};
     my $epub_url = '';
-    if ($content =~ m!href="(/downloads/[-\/\w]+/$sid/[^.]+\.epub)"!)
+    if ($content =~ m!href="(/downloads/[-\/\w]+/$sid/[^.]+\.epub)!)
     {
 	$epub_url = ("http://archiveofourown.org$1");
     }
