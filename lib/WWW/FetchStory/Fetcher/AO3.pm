@@ -138,7 +138,10 @@ sub parse_toc {
     $info{rating} = $self->parse_rating(%args);
     $info{chapters} = $self->parse_chapter_urls(%args, sid=>$sid);
     #$info{epub_url} = $self->parse_epub_url(%args, sid=>$sid);
-    $info{wordcount} = $self->parse_wordcount(%args);
+    if ($info{epub_url})
+    {
+        $info{wordcount} = $self->parse_wordcount(%args);
+    }
 
     return %info;
 } # parse_toc
