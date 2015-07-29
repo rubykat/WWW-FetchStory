@@ -209,7 +209,7 @@ sub parse_title {
     my $content = $args{content};
 
     my $title = '';
-    if ($content =~ m!&lt;a href=&quot;http://archiveofourown.org/works/\d+&quot;&gt;&lt;strong&gt;([-\s\w]+)&lt;/strong&gt;&lt;/a&gt;!)
+    if ($content =~ m!&lt;a href=&quot;http://archiveofourown.org/works/\d+&quot;&gt;&lt;strong&gt;(.*?)&lt;/strong&gt;&lt;/a&gt;!)
     {
 	$title = $1;
     }
@@ -342,7 +342,11 @@ sub parse_universe {
     my $content = $args{content};
 
     my $universe = '';
-    if ($content =~ m!^Fandom: (&lt;a href=&quot;http://archiveofourown.org/tags/.*?,.*?)$!m)
+    if ($content =~ m!Fandom: &lt;a href=&quot;http://archiveofourown\.org/tags/.*?&quot;&gt;(.*?)&lt;/a&gt!)
+    {
+        $universe = $1;
+    }
+    elsif ($content =~ m!^Fandom: (&lt;a href=&quot;http://archiveofourown.org/tags/.*?,.*?)$!m)
     {
 	my $fandoms = $1;
 	my @fds = split(/,/, $fandoms);
@@ -363,6 +367,10 @@ sub parse_universe {
     else
     {
 	$universe = $self->SUPER::parse_universe(%args);
+    }
+    if ($universe =~ m!Harry Potter - J\. K\. Rowling!)
+    {
+        $universe =~ s/\s*-\s*J\. K\. Rowling//;
     }
     return $universe;
 } # parse_universe
