@@ -25,7 +25,7 @@ $info = $self->info();
 sub info {
     my $self = shift;
     
-    my $info = "(http://www.potionsandsnitches.net) A Severus Snape + Harry Potter gen fiction archive.";
+    my $info = "(http://www.potionsandsnitches.org) A Severus Snape + Harry Potter gen fiction archive.";
 
     return $info;
 } # info
@@ -295,7 +295,7 @@ sub parse_chapter_urls {
 	if ($content =~ m#<span class="label">Chapters:\s*</span>\s*(\d+)#s)
 	{
 	    @chapters = ();
-	    my $fmt = 'http://www.potionsandsnitches.net/fanfiction/viewstory.php?action=printable&textsize=0&sid=%d&chapter=%d';
+	    my $fmt = 'http://www.potionsandsnitches.org/fanfiction/viewstory.php?action=printable&textsize=0&sid=%d&chapter=%d';
 	    my $num_ch = $1;
 	    for (my $i=1; $i <= $num_ch; $i++)
 	    {
