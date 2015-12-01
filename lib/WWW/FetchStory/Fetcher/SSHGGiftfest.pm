@@ -1,14 +1,14 @@
-package WWW::FetchStory::Fetcher::SSHGPromptfest;
+package WWW::FetchStory::Fetcher::SSHGGiftfest;
 
 use strict;
 use warnings;
 =head1 NAME
 
-WWW::FetchStory::Fetcher::SSHGPromptfest - fetching module for WWW::FetchStory
+WWW::FetchStory::Fetcher::SSHGGiftfest - fetching module for WWW::FetchStory
 
 =head1 DESCRIPTION
 
-This is the SSHGPromptfest story-fetching plugin for WWW::FetchStory.
+This is the SSHGGiftfest story-fetching plugin for WWW::FetchStory.
 
 =cut
 
@@ -140,5 +140,5 @@ sub parse_toc {
     return %info;
 } # parse_toc
 
-1; # End of WWW::FetchStory::Fetcher::SSHGPromptfest
+1; # End of WWW::FetchStory::Fetcher::SSHGGiftfest
 __END__
