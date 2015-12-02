@@ -2,6 +2,7 @@ package WWW::FetchStory::Fetcher::LiveJournal;
 
 use strict;
 use warnings;
+use HTML::Entities;
 =head1 NAME
 
 WWW::FetchStory::Fetcher::LiveJournal - fetching module for WWW::FetchStory
@@ -374,6 +375,7 @@ sub parse_title {
     {
 	$title = $1;
     }
+    $title = decode_entities($title); # get rid of HTML entities in the title
     $title =~ s/<u>//ig;
     $title =~ s/<\/u>//ig;
     return $title;

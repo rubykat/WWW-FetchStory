@@ -93,7 +93,7 @@ sub init {
 		hide_cookie2 => 1,
 		ignore_discard => 1,
 	    );
-	    print "\n--------------\n", $cookies->as_string, "\n------------\n" if ($self->{debug} && $self->{debug} > 1);
+	    print "\n--------------\n", $cookies->as_string, "\n------------\n" if ($self->{debug} && $self->{debug} > 2);
 	    $self->{user_agent}->cookie_jar( $cookies );
 	}
 	elsif ($self->{wget_cookies} and -f $self->{wget_cookies})
@@ -103,10 +103,10 @@ sub init {
 		hide_cookie2 => 1,
 		ignore_discard => 1,
 	    );
-	    print "\n--------------\n", $cookies->as_string, "\n------------\n" if ($self->{debug} && $self->{debug} > 1);
+	    print "\n--------------\n", $cookies->as_string, "\n------------\n" if ($self->{debug} && $self->{debug} > 2);
 	    $self->{user_agent}->cookie_jar( $cookies );
 	}
-	if ($self->{debug})
+	if ($self->{debug} && $self->{debug} > 1)
 	{
 	    $self->{user_agent}->add_handler("request_send",  sub { shift->dump; return });
 	    $self->{user_agent}->add_handler("response_done", sub { shift->dump; return });
@@ -346,14 +346,17 @@ sub get_story_basename {
     my $title = shift;
 
     # make a word with only letters and numbers
+    # and remove HTML entities and UTF-8
     # and with everything lowercase
-    # and then the spaces replaced with underscores
+    # and the spaces replaced with underscores
     my $base = $title;
     $base =~ s/^The\s+//; # get rid of leading "The "
     $base =~ s/^A\s+//; # get rid of leading "A "
     $base =~ s/^An\s+//; # get rid of leading "An "
     $base =~ s/-/ /g; # replace dashes with spaces
-    $base =~ s/[^\w\s]//g;
+    $base = decode_entities($base); # replace entities with UTF-8
+    $base =~ s/[^[:ascii:]]//g; # remove UTF-8
+    $base =~ s/[^\w\s]//g; # remove non-word characters
     $base = lc($base);
 
     my @words = split(' ', $base);
@@ -858,11 +861,11 @@ sub parse_characters {
     {
 	$characters = $1;
     }
-    elsif ($content =~ m#(?:Pairings|Characters):</(?:b|strong|u)>([^<]+)#is)
+    elsif ($content =~ m#(?:Pairings?|Characters):</(?:b|strong|u)>\s*([^<]+)#is)
     {
 	$characters = $1;
     }
-    elsif ($content =~ m#<tr><(?:th|td)>(?:Pairings|Characters)</(?:th|td)><td>(.*?)</td></tr>#s)
+    elsif ($content =~ m#<tr><(?:th|td)>(?:Pairings?|Characters)</(?:th|td)><td>(.*?)</td></tr>#s)
     {
 	$characters = $1;
 	$characters =~ s/<br>/, /g;
@@ -1339,6 +1342,10 @@ sub wordcount {
     {
         my $orig_length = length($args{content});
         print "orig_length=$orig_length, words=$wordcount, chars=$chars\n";
+        if ($wordcount < 200) # too short!
+        {
+            print "====== stripped ======\n$stripped\n======\n";
+        }
     }
     return (
 	words=>$wordcount,
@@ -1584,9 +1591,10 @@ sub tidy_chars {
 
     #   Fix dimbulb obscure numeric rendering of &lt; &gt; &amp;
 
-    $string =~ s/&#038;/&amp;/g;
-    $string =~ s/&#060;/&lt;/g;
-    $string =~ s/&#062;/&gt;/g;
+    $string =~ s/\&\#038;/&amp;/g;
+    $string =~ s/\&\#39;/&lsquo;/g;
+    $string =~ s/\&\#060;/&lt;/g;
+    $string =~ s/\&\#062;/&gt;/g;
 
     #	Translate Unicode numeric punctuation characters
     #	into ISO equivalents
@@ -1597,7 +1605,7 @@ sub tidy_chars {
     $string =~ s/&#8212;/--/sg;   	# 0x2014 Em dash
     $string =~ s/&#8213;/--/sg;   	# 0x2015 Horizontal bar/quotation dash
     $string =~ s/&#8214;/||/sg;   	# 0x2016 Double vertical line
-    $string =~ s-&#8215;-<U>_</U>-sg; # 0x2017 Double low line
+    $string =~ s-&#8215;-_-sg; # 0x2017 Double low line
     $string =~ s/&#8216;/`/sg;    	# 0x2018 Left single quotation mark
     $string =~ s/&#8217;/'/sg;    	# 0x2019 Right single quotation mark
     $string =~ s/&#8218;/,/sg;    	# 0x201A Single low-9 quotation mark
@@ -1621,6 +1629,7 @@ sub tidy_chars {
     $string =~ s/\&rsquo;/'/g;
     $string =~ s/\&ldquo;/"/g;
     $string =~ s/\&rdquo;/"/g;
+    $string =~ s/\&quot;/"/g;
     $string =~ s/\&ndash;/-/g;
     $string =~ s/\&hellip;/.../g;
 

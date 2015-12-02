@@ -133,6 +133,10 @@ sub parse_toc {
     $info{characters} = $self->parse_characters(%args);
     $info{characters} =~ s!Severus/Hermione!Severus Snape, Hermione Granger!;
     $info{characters} =~ s!Hermione/Severus!Hermione Granger, Severus Snape!;
+    if (!$info{characters})
+    {
+        $info{characters} = 'Hermione Granger, Severus Snape';
+    }
     $info{universe} = 'Harry Potter';
     $info{recipient} = $self->parse_recipient(%args);
     $info{chapters} = $self->parse_chapter_urls(%args);
