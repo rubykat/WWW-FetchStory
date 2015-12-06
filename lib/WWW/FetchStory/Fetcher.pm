@@ -1059,7 +1059,7 @@ sub get_chapter {
 
     my $html = $self->tidy(story=>$story, title=>$chapter_title);
 
-    my %wc = $self->wordcount(content=>$story);
+    my %wc = $self->wordcount(content=>$html);
 
     #
     # Write the file

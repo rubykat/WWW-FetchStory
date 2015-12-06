@@ -144,5 +144,41 @@ sub parse_toc {
     return %info;
 } # parse_toc
 
+=head2 parse_chapter_urls
+
+Figure out the URLs for the chapters of this story.
+
+=cut
+sub parse_chapter_urls {
+    my $self = shift;
+    my %args = (
+	url=>'',
+	content=>'',
+	@_
+    );
+    my $content = $args{content};
+    my $sid = $args{sid};
+    my @chapters = ();
+    if (defined $args{urls})
+    {
+	@chapters = @{$args{urls}};
+	for (my $i = 0; $i < @chapters; $i++)
+	{
+	    $chapters[$i] = sprintf('%s?format=light', $chapters[$i]);
+	}
+    }
+    if (@chapters == 1)
+    {
+	while ($content =~ m/href=["'](http:\/\/sshg-(?:mod|gifts|giftmod)\.livejournal\.com\/\d+.html)/sg)
+	{
+	    my $ch_url = $1;
+	    warn "chapter=$ch_url\n" if ($self->{verbose} > 1);
+	    push @chapters, "${ch_url}?format=light";
+	}
+    }
+
+    return \@chapters;
+} # parse_chapter_urls
+
 1; # End of WWW::FetchStory::Fetcher::SSHGGiftfest
 __END__
