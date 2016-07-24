@@ -517,11 +517,11 @@ sub parse_title {
     {
 	$title = $1;
     }
-    elsif ($content =~ m#<title>([^<]+), a [^<]+ fanfic [|] FanFiction</title>#is)
+    elsif ($content =~ m#<title>([^<]+)\s*Chapter[^<]+</title>#is)
     {
 	$title = $1;
     }
-    elsif ($content =~ m#<title>([^<]+)\s*Chapter[^<]+</title>#is)
+    elsif ($content =~ m#<title>([^<]+), a [^<]+ fanfic [|] FanFiction</title>#is)
     {
 	$title = $1;
     }
