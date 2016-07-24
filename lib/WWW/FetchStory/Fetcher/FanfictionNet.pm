@@ -442,6 +442,14 @@ sub parse_characters {
     $characters =~ s/Ginny W/Ginny Weasley/;
     $characters =~ s/Fred W/Fred Weasley/;
     $characters =~ s/George W/George Weasley/;
+    $characters =~ s/8th Doctor/Eighth Doctor/;
+    $characters =~ s/9th Doctor/Ninth Doctor/;
+    $characters =~ s/10th Doctor/Tenth Doctor/;
+    $characters =~ s/11th Doctor/Eleventh Doctor/;
+    $characters =~ s/Rose T/Rose Tyler/;
+    $characters =~ s/Donna N/Donna Noble/;
+    $characters =~ s/Jenny - Doctor's Daughter/Jenny/;
+    $characters =~ s#River Song/Melody P III#River Song#;
 
     return $characters;
 } # parse_characters
@@ -506,6 +514,10 @@ sub parse_title {
     my $content = $args{content};
     my $title = '';
     if ($content =~ m/&#187; <b>([^<]+)<\/b>/s)
+    {
+	$title = $1;
+    }
+    elsif ($content =~ m#<title>([^<]+), a [^<]+ fanfic [|] FanFiction</title>#is)
     {
 	$title = $1;
     }
