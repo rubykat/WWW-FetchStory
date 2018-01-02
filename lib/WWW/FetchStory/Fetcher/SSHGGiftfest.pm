@@ -137,8 +137,13 @@ sub parse_toc {
     {
         $info{characters} = 'Hermione Granger, Severus Snape';
     }
+    $info{category} = 'SSHG';
     $info{universe} = 'Harry Potter';
     $info{recipient} = $self->parse_recipient(%args);
+    if (!$info{recipient}) # if it fails to parse the recipient, remove them
+    {
+        delete $info{recipient};
+    }
     $info{chapters} = $self->parse_chapter_urls(%args);
 
     return %info;
