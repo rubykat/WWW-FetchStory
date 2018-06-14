@@ -279,6 +279,7 @@ sub parse_summary {
     $summary =~ s!<\w+>!!g;
     $summary =~ s!</\w+>!!g;
     $summary =~ s!&#x27;!'!g;
+    $summary =~ s!&#39;!'!g;
     return $summary;
 } # parse_summary
 
