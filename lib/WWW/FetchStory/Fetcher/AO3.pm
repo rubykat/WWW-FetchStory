@@ -398,7 +398,18 @@ sub parse_category {
     my $content = $args{content};
 
     my $category = '';
-    if ($content =~ m!Additional Tags:\s*</dt>\s*<dd class="freeform tags">\s*<ul[^>]*>\s*(.*?)\s*</ul>!s)
+    if ($content =~ m!<dd class="freeform tags">(.*?)</dd>!s)
+    {
+        # multiple categories inside links
+        my $str = $1;
+        my @cats = ();
+        while ($str =~ m!([^><]+)</a>!g)
+        {
+            push @cats, $1;
+        }
+        $category = join(', ', @cats);
+    }
+    elsif ($content =~ m!Additional Tags:\s*</dt>\s*<dd class="freeform tags">\s*<ul[^>]*>\s*(.*?)\s*</ul>!s)
     {
 	my $categories = $1;
 	my @cats = split(/<li>/, $categories);
