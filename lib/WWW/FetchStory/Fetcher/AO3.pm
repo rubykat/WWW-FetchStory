@@ -236,12 +236,9 @@ sub parse_author {
 
     my $content = $args{content};
 
+    say STDERR "start of parse_author";
     my $author = '';
-    if ($content =~ m!<a href="/users/\w+/pseuds/\w+" class="login author">([^<]+)</a>!)
-    {
-	$author = $1;
-    }
-    elsif ($content =~ m!&lt;a href=&quot;http://archiveofourown.org/users/\w+&quot;&gt;&lt;strong&gt;([-\w\s]+)&lt;/strong&gt;&lt;/a&gt;!)
+    if ($content =~ m! href="/users/\w+/pseuds/\w+">([^<]+)</a>!)
     {
 	$author = $1;
     }
