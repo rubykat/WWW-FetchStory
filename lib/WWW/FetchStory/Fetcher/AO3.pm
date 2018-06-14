@@ -209,7 +209,12 @@ sub parse_title {
     my $content = $args{content};
 
     my $title = '';
-    if ($content =~ m!&lt;a href=&quot;http://archiveofourown.org/works/\d+&quot;&gt;&lt;strong&gt;(.*?)&lt;/strong&gt;&lt;/a&gt;!)
+    if ($content =~ m!<h2 class="title heading">\s*([^<]*)</h2>!s)
+    {
+	$title = $1;
+        $title =~ s/\s*$//s; # remove any trailing whitespace
+    }
+    elsif ($content =~ m!<h1>([^<]*)</h1>!)
     {
 	$title = $1;
     }
