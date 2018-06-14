@@ -342,25 +342,25 @@ sub parse_universe {
     my $content = $args{content};
 
     my $universe = '';
-    if ($content =~ m!Fandom: &lt;a href=&quot;http://archiveofourown\.org/tags/.*?&quot;&gt;(.*?)&lt;/a&gt!)
+    if ($content =~ m!Fandom: &lt;a href=&quot;https?://archiveofourown\.org/tags/.*?&quot;&gt;(.*?)&lt;/a&gt!)
     {
         $universe = $1;
     }
-    elsif ($content =~ m!^Fandom: (&lt;a href=&quot;http://archiveofourown.org/tags/.*?,.*?)$!m)
+    elsif ($content =~ m!^Fandom: (&lt;a href=&quot;https?://archiveofourown.org/tags/.*?,.*?)$!m)
     {
 	my $fandoms = $1;
 	my @fds = split(/,/, $fandoms);
 	my @universes = ();
 	foreach my $fd (@fds)
 	{
-	    if ($fd =~ m!&lt;a href=&quot;http://archiveofourown.org/tags/.*?&quot;&gt;(.*?)&lt;/a&gt;!m)
+	    if ($fd =~ m!&lt;a href=&quot;https?://archiveofourown.org/tags/.*?&quot;&gt;(.*?)&lt;/a&gt;!m)
 	    {
 		push @universes, $1;
 	    }
 	}
 	$universe = join(', ', @universes);
     }
-    elsif ($content =~ m!^Fandom: &lt;a href=&quot;http://archiveofourown.org/tags/.*?&quot;&gt;(.*?)&lt;/a&gt;$!m)
+    elsif ($content =~ m!^Fandom: &lt;a href=&quot;https?://archiveofourown.org/tags/.*?&quot;&gt;(.*?)&lt;/a&gt;$!m)
     {
 	$universe = $1;
     }
@@ -368,9 +368,14 @@ sub parse_universe {
     {
 	$universe = $self->SUPER::parse_universe(%args);
     }
+    # Minor adjustments to AO3 tags
     if ($universe =~ m!Harry Potter - J\. K\. Rowling!)
     {
         $universe =~ s/\s*-\s*J\. K\. Rowling//;
+    }
+    elsif ($universe =~ m!(Doctor Who)!)
+    {
+        $universe = $1;
     }
     return $universe;
 } # parse_universe
