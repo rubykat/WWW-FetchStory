@@ -255,9 +255,18 @@ sub extract_story {
     }
     else
     {
-	print STDERR "story not found\n";
-        print STDERR "\n==============\n${content}\n===========\n" if ($self->{debug});
-	return $self->tidy_chars($content);
+        if ($self->{debug})
+        {
+            open(my $fh, ">", "FS$$.html");
+            print $fh $content;
+            close $fh;
+            die "STORY not found. Content is in FS$$.html"
+        }
+        else
+        {
+            print STDERR "story not found\n";
+            return $self->tidy_chars($content);
+        }
     }
 
     my $out = <<EOT;
