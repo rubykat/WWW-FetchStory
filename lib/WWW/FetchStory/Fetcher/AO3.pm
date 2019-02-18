@@ -330,6 +330,8 @@ sub parse_characters {
     {
 	$characters = $self->SUPER::parse_characters(%args);
     }
+    # Remove the (Universe) part of the characters
+    $characters =~ s!\s*\([^)]+\)!!g;
     return $characters;
 } # parse_characters
 
@@ -379,6 +381,10 @@ sub parse_universe {
     elsif ($universe =~ m!(Doctor Who)!)
     {
         $universe = $1;
+    }
+    elsif ($universe =~ m!Blake&amp;#39;s 7!)
+    {
+        $universe = 'Blakes 7';
     }
     return $universe;
 } # parse_universe
