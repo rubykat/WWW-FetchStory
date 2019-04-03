@@ -166,7 +166,7 @@ sub parse_chapter_urls {
 	@chapters = @{$args{urls}};
     }
     if (@chapters == 1
-	    and $content =~ m!href="(/downloads/[-\/\w]+/$sid/[^.]+\.html)!)
+	    and $content =~ m!href="(/downloads/$sid/[^.]+\.html)!)
     {
 	@chapters = ("http://archiveofourown.org$1");
     }
