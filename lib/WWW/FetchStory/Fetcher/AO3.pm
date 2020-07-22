@@ -433,6 +433,31 @@ sub parse_category {
     {
 	$category = $self->SUPER::parse_category(%args);
     }
+
+    # Also add the "relationship tags", if any, to the categories
+    if ($content =~ m!<dd class="relationship tags">(.*?)</dd>!s)
+    {
+        my $str = $1;
+        my @cats = ($category);
+        while ($str =~ m!([^><]+)</a>!g)
+        {
+            my $rawrel = $1;
+            my $rel = $rawrel;
+            if ($rawrel =~ m!/!)
+            {
+                $rawrel =~ s!/!-!g;
+                $rel = "${rawrel} Romance";
+            }
+            elsif ($rawrel =~ m!\&amp;!)
+            {
+                $rawrel =~ s!\s*\&amp;\s*!-!g;
+                $rel = "${rawrel} Friendship";
+            }
+            push @cats, $rel;
+        }
+        $category = join(', ', @cats);
+    }
+
     return $category;
 } # parse_category
 
