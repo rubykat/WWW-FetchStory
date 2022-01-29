@@ -385,7 +385,7 @@ sub parse_universe {
     {
         $universe = 'Blakes 7';
     }
-    elsif ($universe =~ m!(Marvel Cinematic Universe|Avengers|Iron Man)!)
+    elsif ($universe =~ m!(Marvel Cinematic Universe|Avengers|Iron Man|Captain America)!)
     {
         $universe = 'MCU';
     }
