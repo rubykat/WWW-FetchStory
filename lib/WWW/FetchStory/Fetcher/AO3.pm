@@ -310,6 +310,10 @@ sub parse_wordcount {
     {
 	$words = $1;
     }
+    elsif ($content =~ m!<dt class="words">Words:</dt><dd class="words">(\d+)</dd>!)
+    {
+	$words = $1;
+    }
     return $words;
 } # parse_wordcount
 
