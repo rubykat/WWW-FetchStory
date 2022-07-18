@@ -1149,7 +1149,13 @@ sub get_epub {
 	    }
 	}
         print STDERR "get_epub: about to replace description\n" if $self->{debug};
-	$self->epub_replace_description(description=>$meta{summary}, xml=>$dom);
+        my $summary = $meta{summary};
+        # need to clean up the summary removing things not okay to put in a meta tag
+        $summary =~ s!<[^>]+>!!g;
+        $summary =~ s!</[^>]+>!!g;
+        $summary =~ s!"!''!g;
+
+	$self->epub_replace_description(description=>$summary, xml=>$dom);
 	# remove meta info we don't want to be added to this
 	delete $meta{description};
 	delete $meta{title};
