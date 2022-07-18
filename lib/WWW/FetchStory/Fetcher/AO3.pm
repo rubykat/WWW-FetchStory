@@ -240,7 +240,6 @@ sub parse_author {
 
     my $content = $args{content};
 
-    say STDERR "start of parse_author";
     my $author = '';
     if ($content =~ m! href="/users/\w+/pseuds/\w+">([^<]+)</a>!)
     {
@@ -287,8 +286,9 @@ sub parse_summary {
     # AO3 tends to have messy HTML stuff stuck in the summary
     $summary =~ s!&lt;[a-zA-Z]&gt;!!g;
     $summary =~ s!&lt;/[a-zA-Z]&gt;!!g;
-    $summary =~ s!<\w+>!!g;
-    $summary =~ s!</\w+>!!g;
+    $summary =~ s!&amp;!and!g;
+    $summary =~ s!<[^>]+>!!g;
+    $summary =~ s!</[^>]+>!!g;
     $summary =~ s!&#x27;!'!g;
     $summary =~ s!&#39;!'!g;
     return $summary;
