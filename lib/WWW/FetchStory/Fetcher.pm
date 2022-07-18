@@ -1148,14 +1148,9 @@ sub get_epub {
 		}
 	    }
 	}
-        print STDERR "get_epub: about to replace description\n" if $self->{debug};
-        my $summary = $meta{summary};
-        # need to clean up the summary removing things not okay to put in a meta tag
-        $summary =~ s!<[^>]+>!!g;
-        $summary =~ s!</[^>]+>!!g;
-        $summary =~ s!"!''!g;
+        ## print STDERR "get_epub: about to replace description\n" if $self->{debug};
+        ## $self->epub_replace_description(description=>$meta{summary}, xml=>$dom);
 
-	$self->epub_replace_description(description=>$summary, xml=>$dom);
 	# remove meta info we don't want to be added to this
 	delete $meta{description};
 	delete $meta{title};
@@ -1184,6 +1179,10 @@ sub epub_replace_description {
 
     my $dom = $args{xml};
     my $desc = $args{description};
+    # need to clean up the description removing things not okay to put in a meta tag
+    $desc =~ s!<[^>]+>!!g;
+    $desc =~ s!</[^>]+>!!g;
+    $desc =~ s!"!''!g;
     print STDERR "epub_replace_description: description=$desc\n" if $self->{debug};
     my @metanodes = $dom->getElementsByLocalName('metadata');
     return unless @metanodes;
@@ -1191,8 +1190,10 @@ sub epub_replace_description {
     my @dnodes = $metanode->getElementsByLocalName('description');
     if ($dnodes[0])
     {
-	$metanode->removeChild($dnodes[0]);
+        print STDERR "epub_replace_description: about to remove old description\n" if $self->{debug};
+        $metanode->removeChild($dnodes[0]);
     }
+    print STDERR "epub_replace_description: about to add new description\n" if $self->{debug};
     $metanode->appendTextChild('dc:description', $desc);
 } # epub_replace_description
 
