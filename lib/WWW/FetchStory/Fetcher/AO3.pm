@@ -353,7 +353,9 @@ sub parse_characters {
 
     # Specific character things to change
     $characters =~ s!James "Bucky" Barnes!James Barnes!g;
+    $characters =~ s!James Bucky Barnes!James Barnes!g;
     $characters =~ s!James "Rhodey" Rhodes!James Rhodes!g;
+    $characters =~ s!James Rhodey Rhodes!James Rhodes!g;
     $characters =~ s!You!U!g;
     $characters =~ s!Dummy!Dum-E!g;
     
