@@ -350,6 +350,13 @@ sub parse_characters {
     }
     # Remove the (Universe) part of the characters
     $characters =~ s!\s*\([^)]+\)!!g;
+
+    # Specific character things to change
+    $characters =~ s!James "Bucky" Barnes!James Barnes!g;
+    $characters =~ s!James "Rhodey" Rhodes!James Rhodes!g;
+    $characters =~ s!You!U!g;
+    $characters =~ s!Dummy!Dum-E!g;
+    
     return $characters;
 } # parse_characters
 
@@ -461,6 +468,11 @@ sub parse_category {
                 $rawrel =~ s!\s*\&amp;\s*!-!g;
                 $rel = "${rawrel} Friendship";
             }
+            $rel =~ s!\s*\([^)]+\)!!g; # remove universe if there is one there
+            $rel =~ s!James "Bucky" Barnes!James Barnes!g;
+            $rel =~ s!James "Rhodey" Rhodes!James Rhodes!g;
+            $rel =~ s!You!U!g;
+            $rel =~ s!Dummy!Dum-E!g;
             push @cats, $rel;
         }
         $category = join(', ', @cats);
