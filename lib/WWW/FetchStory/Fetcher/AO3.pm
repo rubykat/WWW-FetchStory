@@ -242,6 +242,10 @@ sub parse_author {
     {
 	$author = $1;
     }
+    elsif ($content =~ m! href="/users/\w+/pseuds/[^"]+">([^<]+)</a>!)
+    { # There might be odd characters in there
+	$author = $1;
+    }
     else
     {
 	$author = $self->SUPER::parse_author(%args);
@@ -307,9 +311,10 @@ sub parse_wordcount {
     {
 	$words = $1;
     }
-    elsif ($content =~ m!<dt class="words">Words:</dt><dd class="words">(\d+)</dd>!)
+    elsif ($content =~ m!<dt class="words">Words:</dt>\s*<dd class="words">([0-9][0-9,]+)</dd>!)
     {
 	$words = $1;
+        $words =~ s/,//;
     }
     return $words;
 } # parse_wordcount
