@@ -193,7 +193,11 @@ sub parse_epub_url {
     my $content = $args{content};
     my $sid = $args{sid};
     my $epub_url = '';
-    if ($content =~ m!href="(/downloads/$sid/[^.]+\.epub)!)
+    if ($content =~ m!href="(/downloads/$sid/[^.]+\.epub\?updated_at=\d+)!)
+    {
+	$epub_url = "https://archiveofourown.org$1";
+    }
+    elsif ($content =~ m!href="(/downloads/$sid/[^.]+\.epub)!)
     {
 	$epub_url = ("http://archiveofourown.org$1");
     }
