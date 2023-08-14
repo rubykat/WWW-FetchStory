@@ -534,7 +534,18 @@ sub get_page {
     warn "getting $url\n" if $self->{verbose};
     my $content = '';
 
-    if ($self->{use_wget})
+    # The "url" might be a file instead
+    if ($url !~ /http/ and -f $url)
+    {
+	my $ifh;
+	open($ifh, $url) or die "FAILED to read ${url}: $!";
+	while(<$ifh>)
+	{
+	    $content .= $_;
+	}
+	close($ifh);
+    }
+    elsif ($self->{use_wget})
     {
 	my $cmd = sprintf("%s -O %s '%s'", $self->{wget_cmd}, '-', $url);
 	warn "$cmd\n" if ($self->{verbose} > 1);
