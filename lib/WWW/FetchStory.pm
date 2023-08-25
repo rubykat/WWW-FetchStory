@@ -99,8 +99,11 @@ sub fetch_story ($%) {
     {
 	foreach my $fe (@{$self->{fetch_pri}->{$pri}})
 	{
-	    if ($fe->allow($first_url))
-	    {
+	    if ($fe->allow($first_url)
+                # the URL might be a file, check rurl
+                    or (-f $first_url and $fe->allow($args{rurl}))
+            )
+            {
 		$fetcher = $fe;
 		warn "Fetcher($pri): ", $fe->name(), "\n" if $args{verbose};
 		last;

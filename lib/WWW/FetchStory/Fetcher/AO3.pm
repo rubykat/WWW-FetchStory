@@ -123,6 +123,10 @@ sub parse_toc {
     {
 	$sid = $1;
     }
+    elsif ($args{rurl} =~ m#archiveofourown.org/works/(\d+)#)
+    {
+	$sid = $1;
+    }
     else
     {
 	print STDERR "did not find SID for $args{url}";
