@@ -496,5 +496,35 @@ sub parse_category {
     return $category;
 } # parse_category
 
+=head2 parse_rating
+
+Get the rating from the content
+
+=cut
+sub parse_rating {
+    my $self = shift;
+    my %args = (
+	content=>'',
+	@_
+    );
+
+    my $content = $args{content};
+    my $rating = '';
+    if ($content =~ m!<dd class="rating tags">(.*?)</dd>!s)
+    {
+        # rating inside links
+        my $str = $1;
+        while ($str =~ m!([^><]+)</a>!g)
+        {
+            $rating = $1;
+        }
+    }
+    else
+    {
+	$rating = $self->SUPER::parse_rating(%args);
+    }
+    return $rating;
+} # parse_rating
+
 1; # End of WWW::FetchStory::Fetcher::AO3
 __END__

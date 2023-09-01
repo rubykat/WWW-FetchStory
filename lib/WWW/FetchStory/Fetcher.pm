@@ -1170,6 +1170,7 @@ sub get_epub {
 	delete $meta{epub_url};
 	delete $meta{basename};
 	delete $meta{toc_first};
+        warn "EPUB meta: ", Dump(\%meta) if ($self->{verbose} > 1);
 	$self->epub_add_meta(meta=>\%meta, xml=>$dom);
 
 	my $str = $dom->toString;
