@@ -12,7 +12,7 @@ This is the SSHGPromptfest story-fetching plugin for WWW::FetchStory.
 
 =cut
 
-our @ISA = qw(WWW::FetchStory::Fetcher::LiveJournal);
+use parent qw(WWW::FetchStory::Fetcher::LiveJournal);
 
 =head1 METHODS
 

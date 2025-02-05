@@ -12,7 +12,8 @@ This is the AO3 story-fetching plugin for WWW::FetchStory.
 
 =cut
 
-our @ISA = qw(WWW::FetchStory::Fetcher);
+use parent qw(WWW::FetchStory::Fetcher);
+use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
 
 =head1 METHODS
 
@@ -38,8 +39,8 @@ The priority of this fetcher.  Fetchers with higher priority
 get tried first.  This is useful where there may be a generic
 fetcher for a particular site, and then a more specialized fetcher
 for particular sections of a site.  For example, there may be a
-generic AO3 fetcher, and then refinements for particular
-AO3 community, such as the sshg_exchange community.
+generic Livejournal fetcher, and then refinements for particular
+Livejournal community, such as the sshg_exchange community.
 This works as either a class function or a method.
 
 This must be overridden by the specific fetcher class.

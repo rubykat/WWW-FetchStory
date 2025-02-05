@@ -12,7 +12,7 @@ This is the Dreamwidth story-fetching plugin for WWW::FetchStory.
 
 =cut
 
-our @ISA = qw(WWW::FetchStory::Fetcher);
+use parent qw(WWW::FetchStory::Fetcher);
 
 =head1 METHODS
 
@@ -187,7 +187,8 @@ Get a table-of-contents page.
 =cut
 sub get_toc {
     my $self = shift;
-    my $url = shift;
+    my %args = @_;
+    my $url = $args{first_url};
 
     return $self->get_page("${url}?format=light");
 } # get_toc

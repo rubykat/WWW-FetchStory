@@ -261,7 +261,7 @@ sub fetch {
     $self->{verbose} = $args{verbose};
 
     my $first_url = $args{urls}[0];
-    my $toc_content = $self->get_toc($first_url);
+    my $toc_content = $self->get_toc(%args, first_url=>$first_url);
     my %story_info = $self->parse_toc(%args, content=>$toc_content,
 	url=>$first_url);
 
@@ -522,7 +522,8 @@ Get a table-of-contents page.
 =cut
 sub get_toc {
     my $self = shift;
-    my $url = shift;
+    my %args = @_;
+    my $url = $args{first_url};
 
     return $self->get_page($url);
 } # get_toc
