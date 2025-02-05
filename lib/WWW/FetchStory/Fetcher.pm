@@ -233,6 +233,12 @@ Build a table-of-contents file if this is true.
 
 Build a YAML file with meta-data about this story if this is true.
 
+=item meta_only
+
+Don't download the story, just parse the meta-data from the web page.
+This is useful if you've had to download the story separately due
+to security restrictions.
+
 =item urls
 
 The URLs of the story.
