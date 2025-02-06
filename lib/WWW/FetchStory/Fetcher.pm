@@ -239,6 +239,12 @@ Don't download the story, just parse the meta-data from the web page.
 This is useful if you've had to download the story separately due
 to security restrictions.
 
+=item use_file I<filename>
+
+Use the given file to parse the meta-data from rather than from
+the web page. (This is usually a pre-downloaded EPUB file)
+Implies meta_only.
+
 =item urls
 
 The URLs of the story.
@@ -271,6 +277,7 @@ sub fetch {
     $story_info{basename} = $basename;
     my @storyfiles = ();
 
+    $args{meta_only} = 1 if $args{use_file};
     if (!$args{meta_only})
     {
         if ($args{epub} and exists $story_info{epub_url} and $story_info{epub_url})

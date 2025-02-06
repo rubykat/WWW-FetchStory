@@ -140,6 +140,7 @@ sub process_args ($) {
 	       'epub!',
 	       'yaml!',
 	       'use_wget!',
+	       'use_file=s',
 	       'manpage',
 	      ) or pod2usage(2);
 
