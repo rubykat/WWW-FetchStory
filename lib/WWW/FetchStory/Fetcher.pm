@@ -278,7 +278,12 @@ sub fetch {
     my @storyfiles = ();
 
     $args{meta_only} = 1 if $args{use_file};
-    if (!$args{meta_only})
+    if ($args{meta_only})
+    {
+        $self->derive_values(info=>\%story_info);
+        warn Dump(\%story_info) if ($self->{verbose} > 1);
+    }
+    else
     {
         if ($args{epub} and exists $story_info{epub_url} and $story_info{epub_url})
         {

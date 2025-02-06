@@ -423,47 +423,49 @@ sub parse_characters {
 
     my $content = $args{content};
 
-    my @characters = ();
+    my $characters = '';
     if ($content =~ m!<dd class="character tags">(.*?)</dd>!s)
     {
         # multiple characters inside links
         my $str = $1;
+        my @chars = ();
         while ($str =~ m!([^><]+)</a>!g)
         {
-            push @characters, $1;
+            push @chars, $1;
         }
+        $characters = join(', ', @chars);
     }
     elsif ($content =~ m!<dt[^>]*>Characters:</dt>\s*<dd[^>]*>(.*?)</dd>!s)
     {
         # multiple characters inside links
         my $str = $1;
+        my @chars = ();
         while ($str =~ m!([^><]+)</a>!g)
         {
-            push @characters, $1;
+            push @chars, $1;
         }
+        $characters = join(', ', @chars);
+    }
+    elsif ($content =~ m!^Characters: (.*?)$!m)
+    {
+	$characters = $1;
     }
     else
     {
-	my $chars = $self->SUPER::parse_characters(%args);
-        @characters = ($chars);
+	$characters = $self->SUPER::parse_characters(%args);
     }
+    # Remove the (Universe) part of the characters
+    $characters =~ s!\s*\([^)]+\)!!g;
 
-    # Tweak the data
-    for (my $i=0; $i < @characters; $i++)
-    {
-        # Remove the (Universe) part of the characters
-        $characters[$i] =~ s!\s*\([^)]+\)!!g;
-
-        # Specific character things to change
-        $characters[$i] =~ s!James "Bucky" Barnes!James Barnes!g;
-        $characters[$i] =~ s!James Bucky Barnes!James Barnes!g;
-        $characters[$i] =~ s!James "Rhodey" Rhodes!James Rhodes!g;
-        $characters[$i] =~ s!James Rhodey Rhodes!James Rhodes!g;
-        $characters[$i] =~ s!You!U!g;
-        $characters[$i] =~ s!Dummy!Dum-E!g;
-    }
-
-    return \@characters;
+    # Specific character things to change
+    $characters =~ s!James "Bucky" Barnes!James Barnes!g;
+    $characters =~ s!James Bucky Barnes!James Barnes!g;
+    $characters =~ s!James "Rhodey" Rhodes!James Rhodes!g;
+    $characters =~ s!James Rhodey Rhodes!James Rhodes!g;
+    $characters =~ s!You!U!g;
+    $characters =~ s!Dummy!Dum-E!g;
+    
+    return $characters;
 } # parse_characters
 
 =head2 parse_universe
@@ -477,53 +479,52 @@ sub parse_universe {
 
     my $content = $args{content};
 
-    my @universe = ();
+    my $universe = '';
     if ($content =~ m!<dd class="fandom tags">(.*?)</dd>!s)
     {
         # multiple fandoms inside links
         my $str = $1;
+        my @univ = ();
         while ($str =~ m!([^><]+)</a>!g)
         {
-            push @universe, $1;
+            push @univ, $1;
         }
+        $universe = join(', ', @univ);
     }
     elsif ($content =~ m!<dt[^>]*>Fandoms:</dt>\s*<dd[^>]*>(.*?)</dd>!s)
     {
         # multiple fandoms inside links
         my $str = $1;
+        my @univ = ();
         while ($str =~ m!([^><]+)</a>!g)
         {
-            push @universe, $1;
+            push @univ, $1;
         }
+        $universe = join(', ', @univ);
     }
     else
     {
-	my $universe = $self->SUPER::parse_universe(%args);
-        @universe = ($universe);
+	$universe = $self->SUPER::parse_universe(%args);
     }
 
-    # Tweak the data
-    for (my $i=0; $i < @universe; $i++)
+    # Minor adjustments to AO3 tags
+    if ($universe =~ m!Harry Potter - J\. K\. Rowling!)
     {
-        # Minor adjustments to AO3 tags
-        if ($universe[$i] =~ m!Harry Potter - J\. K\. Rowling!)
-        {
-            $universe[$i] =~ s/\s*-\s*J\. K\. Rowling//;
-        }
-        elsif ($universe[$i] =~ m!(Doctor Who)!)
-        {
-            $universe[$i] = $1;
-        }
-        elsif ($universe[$i] =~ m!Blake&amp;#39;s 7!)
-        {
-            $universe[$i] = 'Blakes 7';
-        }
-        elsif ($universe[$i] =~ m!(Marvel Cinematic Universe|Avengers|Iron Man|Captain America)!)
-        {
-            $universe[$i] = 'MCU';
-        }
+        $universe =~ s/\s*-\s*J\. K\. Rowling//;
     }
-    return \@universe;
+    elsif ($universe =~ m!(Doctor Who)!)
+    {
+        $universe = $1;
+    }
+    elsif ($universe =~ m!Blake&amp;#39;s 7!)
+    {
+        $universe = 'Blakes 7';
+    }
+    elsif ($universe =~ m!(Marvel Cinematic Universe|Avengers|Iron Man|Captain America)!)
+    {
+        $universe = 'MCU';
+    }
+    return $universe;
 } # parse_universe
 
 =head2 parse_category
@@ -537,41 +538,46 @@ sub parse_category {
 
     my $content = $args{content};
 
-    my @category = ();
+    my $category = '';
     if ($content =~ m!<dd class="freeform tags">(.*?)</dd>!s)
     {
         # multiple categories inside links
         my $str = $1;
+        my @cats = ();
         while ($str =~ m!([^><]+)</a>!g)
         {
-            push @category, $1;
+            push @cats, $1;
         }
+        $category = join(', ', @cats);
     }
     elsif ($content =~ m!<dt[^>]*>Additional Tags:</dt>\s*<dd[^>]*>(.*?)</dd>!s)
     {
         # multiple categories inside links
         my $str = $1;
+        my @cats = ();
         while ($str =~ m!([^><]+)</a>!g)
         {
-            push @category, $1;
+            push @cats, $1;
         }
+        $category = join(', ', @cats);
     }
     elsif ($content =~ m!Additional Tags:\s*</dt>\s*<dd class="freeform tags">\s*<ul[^>]*>\s*(.*?)\s*</ul>!s)
     {
 	my $categories = $1;
 	my @cats = split(/<li>/, $categories);
+	my @categories = ();
 	foreach my $cat (@cats)
 	{
 	    if ($cat =~ m!class="tag">([^<]+)</a>!)
 	    {
-		push @category, $1;
+		push @categories, $1;
 	    }
 	}
+	$category = join(', ', @categories);
     }
     else
     {
-	my $category = $self->SUPER::parse_category(%args);
-        @category = ($category);
+	$category = $self->SUPER::parse_category(%args);
     }
 
     # Also add the "relationship tags", if any, to the categories
@@ -579,6 +585,7 @@ sub parse_category {
             or $content =~ m!<dt[^>]*>Relationship:</dt>\s*<dd[^>]*>(.*?)</dd>!s)
     {
         my $str = $1;
+        my @cats = ($category);
         while ($str =~ m!([^><]+)</a>!g)
         {
             my $rawrel = $1;
@@ -598,11 +605,12 @@ sub parse_category {
             $rel =~ s!James "Rhodey" Rhodes!James Rhodes!g;
             $rel =~ s!You!U!g;
             $rel =~ s!Dummy!Dum-E!g;
-            push @category, $rel;
+            push @cats, $rel;
         }
+        $category = join(', ', @cats);
     }
 
-    return \@category;
+    return $category;
 } # parse_category
 
 =head2 parse_rating
