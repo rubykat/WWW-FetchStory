@@ -582,7 +582,7 @@ sub parse_category {
 
     # Also add the "relationship tags", if any, to the categories
     if ($content =~ m!<dd class="relationship tags">(.*?)</dd>!s
-            or $content =~ m!<dt[^>]*>Relationship:</dt>\s*<dd[^>]*>(.*?)</dd>!s)
+            or $content =~ m!<dt[^>]*>Relationships?:</dt>\s*<dd[^>]*>(.*?)</dd>!s)
     {
         my $str = $1;
         my @cats = ($category);
