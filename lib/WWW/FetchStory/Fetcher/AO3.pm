@@ -205,7 +205,7 @@ sub parse_toc {
         if ($content =~ m!work_id=(\d+)!)
         {
             $sid = $1;
-            $args{rurl} = "https://archiveofourown.org/works/${sid}";
+            $info{url} = "https://archiveofourown.org/works/${sid}";
         }
     }
     if (!$sid)
