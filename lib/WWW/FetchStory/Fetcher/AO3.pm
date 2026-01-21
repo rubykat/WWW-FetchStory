@@ -207,6 +207,11 @@ sub parse_toc {
             $sid = $1;
             $info{url} = "https://archiveofourown.org/works/${sid}";
         }
+        elsif ($content =~ m!/works/(\d+)/!)
+        {
+            $sid = $1;
+            $info{url} = "https://archiveofourown.org/works/${sid}";
+        }
     }
     if (!$sid)
     {
