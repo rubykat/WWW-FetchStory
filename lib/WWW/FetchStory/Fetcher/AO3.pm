@@ -15,6 +15,7 @@ This is the AO3 story-fetching plugin for WWW::FetchStory.
 use parent qw(WWW::FetchStory::Fetcher);
 use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
 use YAML::Any;
+use Path::Tiny;
 
 =head1 METHODS
 
@@ -43,8 +44,6 @@ for particular sections of a site.  For example, there may be a
 generic Livejournal fetcher, and then refinements for particular
 Livejournal community, such as the sshg_exchange community.
 This works as either a class function or a method.
-
-This must be overridden by the specific fetcher class.
 
 $priority = $self->priority();
 
@@ -75,7 +74,17 @@ sub allow {
     my $self = shift;
     my $url = shift;
 
-    return ($url =~ /archiveofourown\.org/ || $url =~ /ao3\.org/);
+    if (-f $url and $url =~ /\.html$/) # is a HTML file, not a URL
+    {
+        # We can figure out if this is from AO3 by looking inside it
+        my $path = path($url);
+        my $contents = $path->slurp;
+        return ($contents =~ m!<meta name="author" content="Organization for Transformative Works" />!);
+    }
+    else
+    {
+        return ($url =~ /archiveofourown\.org/ || $url =~ /ao3\.org/);
+    }
 } # allow
 
 =head1 Private Methods
@@ -181,16 +190,25 @@ sub parse_toc {
         }
     }
 
+    # sid: story-id, work-id
     my $sid='';
     if ($info{url} =~ m#archiveofourown.org/works/(\d+)#)
     {
 	$sid = $1;
     }
-    elsif ($args{rurl} =~ m#archiveofourown.org/works/(\d+)#)
+    elsif ($args{rurl} and $args{rurl} =~ m#archiveofourown.org/works/(\d+)#)
     {
 	$sid = $1;
     }
-    else
+    elsif (!$args{rurl}) # derive the sid from the contents of the toc
+    {
+        if ($content =~ m!work_id=(\d+)!)
+        {
+            $sid = $1;
+            $args{rurl} = "https://archiveofourown.org/works/${sid}";
+        }
+    }
+    if (!$sid)
     {
 	print STDERR "did not find SID for $args{url} $info{url}";
 	return $self->SUPER::parse_toc(%args);
